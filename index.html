@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<script src="http://localhost/dist/brackets.dev.js"></script>
+	<title>Brackets playground</title>
+</head>
+<body>
+
+<div id="app">{{$text}}</div>
+<script>
+	Brackets
+		.render({
+			el: '#app',
+			data: {
+				text: 'I ❤️ Brackets!'
+			}
+		});
+</script>
+
+</body>
+</html>

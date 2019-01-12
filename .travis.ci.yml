@@ -1,0 +1,30 @@
+language: node_js
+
+node_js:
+    - '8'
+
+notifications:
+    email: false
+
+sudo: required
+
+addons:
+    chrome: stable
+
+cache:
+    yarn: true
+    directories:
+        - node_modules
+
+install:
+    - yarn
+
+jobs:
+    include:
+        - stage: lint
+          script:
+              - yarn run lint
+        - stage: test
+          script:
+              - yarn run build:test
+              - yarn run test:chrome
