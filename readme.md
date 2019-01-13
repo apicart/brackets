@@ -1,7 +1,7 @@
 <h1 align="center">
 	<img src="https://github.com/apicart/brackets/blob/master/logo.png">
 	<br>
-	<img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master">
+	<a href="https://travis-ci.org/apicart/brackets" target="blank" rel="noopener"><img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master"></a>
 	<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
 </h1>
 
@@ -225,7 +225,7 @@ There are the following macros defined by default.
    </tbody>
 </table>
 
-### How to create macro
+### How to create a macro
 Macro in the context of the template engine is a piece of executable code.
 
 First we will create a simple macro that will execute alert function. The macro name will be *alert* and *number* its parameter.
