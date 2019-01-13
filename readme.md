@@ -7,6 +7,7 @@
 - Small, flexible, easy to use, component-oriented javascript template engine.
 - ✅ **8 Kb minified (3 Kb Gzipped)**
 - ✅ Supports IE 10 +
+- ✅ [TRY IT ON CODEPEN](https://codepen.io/apicart/pen/OraYJj)
 
 **Content**
 - [Hello World!](https://github.com/apicart/brackets/blob/master/readme.md#hello-world)
