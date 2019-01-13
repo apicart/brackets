@@ -11,7 +11,7 @@
 - ✅ [TRY IT ON CODEPEN](https://codepen.io/apicart/pen/OraYJj)
 
 **Content**
-- [Hello World!](https://github.com/apicart/brackets/blob/master/readme.md#hello-world)
+- [Get Started](https://github.com/apicart/brackets/blob/master/readme.md#getting-started)
 - [Cache](https://github.com/apicart/brackets/blob/master/readme.md#cache)
 - [Templates](https://github.com/apicart/brackets/blob/master/readme.md#templates)
 - [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
@@ -27,8 +27,9 @@ Brackets are under development and therefore they are not yet available on npm. 
 <script src="https://cdn.jsdelivr.net/gh/apicart/brackets/dist/brackets.min.js"></script>
 ```
 
-## Hello World!
-Let's start with a simple example. We will dump the text into the `#app` element. The text is stored in the data object in the text parameter. Variables in have `$` the before name.
+## Getting Started
+Let's start with a simple example. We will render a text stored in the data object into the `#app` element. Notice that variables have dollar sign `$` before the name.
+
 ```html
 <div id="app">
 	{{$text}}
@@ -48,8 +49,7 @@ I ❤️ Brackets!
 ```
 
 ## Cache
-Cache speed's up the templates rendering time. Just add the `cacheKey` parameter with unique value and that's it.
-This will save the compiled code of the template. The code is then reused with provided values. It doesnt cache the rendered template.
+Cache speed's up the rendering process by caching the compiled template (it doesn't cache the rendered content). Just add the `cacheKey` parameter with unique value and that's it.
 
 ```html
 <div id="app">
@@ -67,10 +67,10 @@ Brackets.render({
 ```
 
 ## Templates
-The template that should be rendered can be set in multiple ways. In the example above, the template was loaded from target element.
-However, it is possible to set the template parameter that will be a text you want to render or an id selector of the element from where you want to load the template.
+The template you want to render can be provided in a multiple ways. In the example above, the template was loaded from the target element `#app`. 
 
-In this example, the template is loaded from the template parameter.
+Another way to provide the template is setting it directly as a text in the template parameter.
+
 ```html
 <div id="app"></div>
 <script>
@@ -85,8 +85,7 @@ Brackets.render({
 </script>
 ```
 
-Now lets load the template from the `#template` element
-(you should not load complicated templates from typical html elements because it can cause unexpected errors, we recommend to use `<template>...</template>` elements or `<script type="text/plain">...</script>` for providing your templates).
+Template parameter can also receive an id selector `#elementId`. If so, the template will be loaded from the given element (you shouldn't load complicated templates from a typical html elements because it can cause unexpected errors, we recommend to use `<template>...</template>` or `<script type="text/plain">...</script>` elements as template providers).
 
 ```html
 <div id="app"></div>
@@ -106,9 +105,11 @@ Brackets.render({
 ```
 
 ## Events
-Before the rendering method is called, the beforeRender method is initialized. When the rendering is done, the afterRender method is called. Those methods can serve for editing parameters
-before rendering and to another actions after the rendering.
-Those methods receives whole configuration object as `this` parameter.
+During the whole rendering process, there are triggered two events. 
+- Before render (beforeRender) - this event is triggered before the whole rendering process starts
+- After render (afterRender) - this event is triggered after the rendering process is complete
+
+Both events triggers methods with the configuration object provided as `this`.
 
 ```html
 <div id="app">
@@ -131,11 +132,9 @@ Brackets.render({
 ```
 
 ## Event Handlers
-During the development, you will probably need some interactivity. For example after clicking on a button.
-You can do it in two ways as follows. First one is by providing to `b-on="event triggeredProcess, event2 anotherTriggeredProcess"`
-or by a function `b-on="event function(), event2 function2()"`;
-Methods receives event and parameters arguments. Arguments are always string.
-Inside the methods, you can access and change the data object through `this.someVariable`.
+Every website needs some interactivity. For example after clicking on a button. Every element that should be interactive must have the `b-on=""` attribute. There you can set the target event and what should happen when is triggered.
+The syntax is following `b-on="<event name> <callback>; <event name> <triggered callback>, ..."`.
+The callback can have two forms. Direct functionality, where the function is connected to the data object like `b-on="click number++` or an independent function `b-on="click updateNumber()"`. If you want the callback to be a function, you can provide arguments. Those arguments are passed into the target function and are always a string so you have to convert it if you want to get for example a number from it. `b-on="click showAlert(Some text)"`
 
 ```html
 <div id="app">
@@ -164,7 +163,7 @@ Brackets.render({
 ```
 
 ## Macros
-There are the following macros provided by default.
+There are the following macros defined by default.
 
 ### Conditions
 <table>
@@ -228,9 +227,10 @@ There are the following macros provided by default.
 
 ### How to create macro
 Macro in the context of the template engine is a piece of executable code.
-First we will create a simple macro that will execute alert function. The macro name is *alert* and the parameter is *number*.
+
+First we will create a simple macro that will execute alert function. The macro name will be *alert* and *number* its parameter.
 Macro is separated into two parts `{{<name> <parameters>}}`. `#0` is a placeholder on which place the `<parameters>` will be placed.
-In our case, the `#0` will be replaced by `1`.
+In the following case, the `#0` will be replaced by `1`.
 
 ```html
 <div id="app">
@@ -249,10 +249,11 @@ Brackets
 ```
 
 Macro can also be a function. In another example, we will use the `_template` variable available during the rendering.
-The `_template` is used return the generated template. We will used it, because we want to return a content from out macro.
-The code during the compilation is separated by [Template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) or by single quotes (depends on browser support).
-The correct separator is stored in the `Brackets.templateLiteral` variable and you should use it to prevent incompatibility with older browsers.
-On the end of the macro, there is a semicolon. In case you do not provide the semicolon, the compilation will end with an error.
+The `_template` is used to return the generated template. We will used it, because we want to return a content from our macro.
+
+The code during the compilation is separated by [Template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) or by single quotes (depends on browser support). The correct separator is stored in the `Brackets.templateLiteral` variable and you should use it to prevent incompatibility with older browsers.
+
+On the end of the macro, there is a semicolon. In case you do not provide it the compilation will end with an error.
 
 ```html
 <div id="app">
@@ -278,7 +279,7 @@ Number: 1
 ```
 
 ## Filters
-Filters are used for editing values from variables.
+Filters are used for interaction with values from variables.
 As an example, we will create a filter called `firstToUpper` and it will convert the first character to a capital letter.
 
 ```html
@@ -299,9 +300,8 @@ Brackets
 </script>
 ```
 
-
 Filters can receive multiple arguments. The arguments must be added after the colon and must be separated by a comma.
-The example below returns the default *first * text and attaches the text 'second' and 'third'.
+The example below returns the default *first* text and attaches the text 'second' and 'third'.
 
 ```html
 <div id="app">
@@ -330,7 +330,7 @@ Components helps to create your code more reusable. You can for example create a
 and use it on multiple places with different parameters.
 
 In the first example, there is a component that returns a text. The text is different in each `.app` element.
-Components can receive arguments. Arguments are placed behind comma (`,`) and are also separated by comma (`,`)
+Components can receive arguments. Arguments are placed behind a comma (`,`) and are also separated by a comma (`,`).
 
 ```html
 <div class="app">{{component text}}</div>
@@ -353,8 +353,8 @@ Brackets
 </script>
 ```
 
-Now, let's take a look on nested components with some methods. If the component is nested inside another component,
-then it's parent component must have some root element in which the component is placed.
+Now, let's take a look on nested components. If the component is nested inside another component,
+then it's parent component must have some root element in which the component is placed. The root element is not necessary for a plain text.
 
 ```html
 <div class="app">{{component shareArticle, articleName: 'Article 1'}}</div>
