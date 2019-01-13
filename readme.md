@@ -65,6 +65,45 @@ This will save the compiled code of the template. The code is then reused with p
 </script>
 ```
 
+## Templates
+The template that should be rendered can be set in multiple ways. In the example above, the template was loaded from target element.
+However, it is possible to set the template parameter that will be a text you want to render or an id selector of the element from where you want to load the template.
+
+In this example, the template is loaded from the template parameter.
+```html
+<div id="app"></div>
+<script>
+	Brackets.render({
+		el: '#app',
+		cacheKey: 'test',
+		data: {
+			text: "I ❤️ Brackets!"
+		},
+		template: '{{$text}}'
+	})
+</script>
+```
+
+Now lets load the template from the `#template` element
+(you should not load complicated templates from typical html elements because it can cause unexpected errors, we recommend to use <template> elements or <script type="text/plain"> for providing your templates).
+
+```html
+<div id="app"></div>
+<template id="template">
+	{{$text}}
+</template>
+<script>
+	Brackets.render({
+		el: '#app',
+		cacheKey: 'test',
+		data: {
+			text: "I ❤️ Brackets!"
+		},
+		template: '#template'
+	})
+</script>
+```
+
 ## Events
 Before the rendering method is called, the beforeRender method is initialized. When the rendering is done, the afterRender method is called. Those methods can serve for editing parameters
 before rendering and to another actions after the rendering.
