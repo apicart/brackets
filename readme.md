@@ -86,7 +86,7 @@ Brackets.render({
 ```
 
 Now lets load the template from the `#template` element
-(you should not load complicated templates from typical html elements because it can cause unexpected errors, we recommend to use <template> elements or <script type="text/plain"> for providing your templates).
+(you should not load complicated templates from typical html elements because it can cause unexpected errors, we recommend to use `<template>...</template>` elements or `<script type="text/plain">...</script>` for providing your templates).
 
 ```html
 <div id="app"></div>
