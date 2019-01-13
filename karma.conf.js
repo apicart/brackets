@@ -2,7 +2,7 @@ module.exports = function(config) {
 	config.set({
 		frameworks: ['mocha', 'chai'],
 		files: [
-			'www/dist/braces.js',
+			'www/dist/brackets.js',
 			'www/tests/stack.js'
 		],
 		plugins: [
