@@ -1,5 +1,5 @@
 <h1 align="center">
-	{{Brackets}}
+	<img src="https://github.com/apicart/brackets/blob/master/logo.png">
 	<br>
 	<img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master">
 	<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
