@@ -13,6 +13,7 @@
 **Content**
 - [Hello World!](https://github.com/apicart/brackets/blob/master/readme.md#hello-world)
 - [Cache](https://github.com/apicart/brackets/blob/master/readme.md#cache)
+- [Templates](https://github.com/apicart/brackets/blob/master/readme.md#templates)
 - [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
 - [Event handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
 - [Macros](https://github.com/apicart/brackets/blob/master/readme.md#macros)
