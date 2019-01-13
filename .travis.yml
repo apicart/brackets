@@ -26,5 +26,5 @@ jobs:
               - yarn run lint
         - stage: test
           script:
-              - yarn run build:test
+              - yarn run build:prod
               - yarn run test:chrome
