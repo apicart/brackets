@@ -2,8 +2,8 @@ module.exports = function(config) {
 	config.set({
 		frameworks: ['mocha', 'chai'],
 		files: [
-			'www/dist/brackets.js',
-			'www/tests/stack.js'
+			'dist/brackets.js',
+			'tests/stack.js'
 		],
 		plugins: [
 			'karma-chrome-launcher',
