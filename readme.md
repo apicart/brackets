@@ -1,7 +1,8 @@
 <h1 align="center">
 	{{Brackets}}
 	<br>
-	<img alt="undefined" src="https://img.shields.io/github/license/apicart/brackets.svg">
+	<img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master">
+	<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
 </h1>
 
 - Small, flexible, easy to use, component-oriented javascript template engine.
