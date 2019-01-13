@@ -34,12 +34,12 @@ Let's start with a simple example. We will dump the text into the `#app` element
 	{{$text}}
 </div>
 <script>
-	Brackets.render({
-		el: '#app',
-		data: {
-			text: "I ❤️ Brackets!"
-		}
-	})
+Brackets.render({
+	el: '#app',
+	data: {
+		text: "I ❤️ Brackets!"
+	}
+});
 </script>
 ```
 
@@ -56,13 +56,13 @@ This will save the compiled code of the template. The code is then reused with p
 	{{$text}}
 </div>
 <script>
-	Brackets.render({
-		el: '#app',
-		cacheKey: 'test',
-		data: {
-			text: "I ❤️ Brackets!"
-		}
-	})
+Brackets.render({
+	el: '#app',
+	cacheKey: 'test',
+	data: {
+		text: "I ❤️ Brackets!"
+	}
+});
 </script>
 ```
 
@@ -74,14 +74,14 @@ In this example, the template is loaded from the template parameter.
 ```html
 <div id="app"></div>
 <script>
-	Brackets.render({
-		el: '#app',
-		cacheKey: 'test',
-		data: {
-			text: "I ❤️ Brackets!"
-		},
-		template: '{{$text}}'
-	})
+Brackets.render({
+	el: '#app',
+	cacheKey: 'test',
+	data: {
+		text: "I ❤️ Brackets!"
+	},
+	template: '{{$text}}'
+});
 </script>
 ```
 
@@ -94,14 +94,14 @@ Now lets load the template from the `#template` element
 	{{$text}}
 </template>
 <script>
-	Brackets.render({
-		el: '#app',
-		cacheKey: 'test',
-		data: {
-			text: "I ❤️ Brackets!"
-		},
-		template: '#template'
-	})
+Brackets.render({
+	el: '#app',
+	cacheKey: 'test',
+	data: {
+		text: "I ❤️ Brackets!"
+	},
+	template: '#template'
+});
 </script>
 ```
 
@@ -115,18 +115,18 @@ Those methods receives whole configuration object as `this` parameter.
 	{{$number}}
 </div>
 <script>
-	Brackets.render({
-		el: '#app',
-		data: {
-			number: 1
-		},
-		beforeRender: function () {
-			this.data.number += 1;
-		},
-		afterRender: function () {
-			alert("Generated number is " + this.data.number);
-		}
-	});
+Brackets.render({
+	el: '#app',
+	data: {
+		number: 1
+	},
+	beforeRender: function () {
+		this.data.number += 1;
+	},
+	afterRender: function () {
+		alert("Generated number is " + this.data.number);
+	}
+});
 </script>
 ```
 
@@ -144,22 +144,22 @@ Inside the methods, you can access and change the data object through `this.some
 	<button b-on="click secondButtonText = 'Clicked 2!'; click showAlert()">{{$secondButtonText}}</button>
 </div>
 <script>
-	Brackets.render({
-		el: '#app',
-		data: {
-			number: 0,
-			firstButtonText: 'Click me 1!',
-			secondButtonText: 'Click me 2!'
-		},
-		methods: {
-			showAlert: function (event, parameters) {
-				if (parameters) {
-					this.firstButtonText = parameters;
-				}
-				alert('Hello World!');
+Brackets.render({
+	el: '#app',
+	data: {
+		number: 0,
+		firstButtonText: 'Click me 1!',
+		secondButtonText: 'Click me 2!'
+	},
+	methods: {
+		showAlert: function (event, parameters) {
+			if (parameters) {
+				this.firstButtonText = parameters;
 			}
+			alert('Hello World!');
 		}
-	});
+	}
+});
 </script>
 ```
 
@@ -237,14 +237,14 @@ In our case, the `#0` will be replaced by `1`.
 	{{alert number}}
 </div>
 <script>
-	Brackets
-	    .addMacro('alert', 'alert(#0);')
-        .render({
-            el: '#app',
-            data: {
-                number: 1
-            }
-        });
+Brackets
+	.addMacro('alert', 'alert(#0);')
+	.render({
+		el: '#app',
+		data: {
+			number: 1
+		}
+	});
 </script>
 ```
 
@@ -259,17 +259,17 @@ On the end of the macro, there is a semicolon. In case you do not provide the se
 	{{dumpNumber number}}
 </div>
 <script>
-	var sep = Brackets.templateLiteral;
-	Brackets
-	    .addMacro('dumpNumber', function () {
-    		return '_template +=' + sep + 'Number: ' +  sep + ' + number;'
-    	})
-        .render({
-            el: '#app',
-            data: {
-                number: 1
-            }
-        });
+var sep = Brackets.templateLiteral;
+Brackets
+	.addMacro('dumpNumber', function () {
+		return '_template +=' + sep + 'Number: ' +  sep + ' + number;'
+	})
+	.render({
+		el: '#app',
+		data: {
+			number: 1
+		}
+	});
 </script>
 ```
 
@@ -286,16 +286,16 @@ As an example, we will create a filter called `firstToUpper` and it will convert
 	{{$text|firstToUpper}}
 </div>
 <script>
-	Brackets
-	    .addFilter('firstToUpper', function (text) {
-    		return text.charAt(0).toUpperCase() + text.slice(1);
-    	})
-        .render({
-            el: '#app',
-            data: {
-                text: 'text'
-            }
-        });
+Brackets
+	.addFilter('firstToUpper', function (text) {
+		return text.charAt(0).toUpperCase() + text.slice(1);
+	})
+	.render({
+		el: '#app',
+		data: {
+			text: 'text'
+		}
+	});
 </script>
 ```
 
@@ -308,16 +308,16 @@ The example below returns the default *first * text and attaches the text 'secon
 	{{$text|appendWords: 'second', 'third'}}
 </div>
 <script>
-	Brackets
-	    .addFilter('appendWords', function (text, firstParameter, secondParameter) {
-    		return text + ', ' + firstParameter + ', ' + secondParameter
-    	})
-        .render({
-            el: '#app',
-            data: {
-                text: 'First'
-            }
-        });
+Brackets
+	.addFilter('appendWords', function (text, firstParameter, secondParameter) {
+		return text + ', ' + firstParameter + ', ' + secondParameter
+	})
+	.render({
+		el: '#app',
+		data: {
+			text: 'First'
+		}
+	});
 </script>
 ```
 
@@ -337,19 +337,19 @@ Components can receive arguments. Arguments are placed behind comma (`,`) and ar
 <div class="app">{{component text, text: 'Second app'}}</div>
 <div class="app">{{component text, text: 'Third app'}}</div>
 <script>
-	Brackets
-		.addComponent('text', {
-			data: {
-				text: 'First app'
-			},
-			template: '{{$text}}'
-		})
-		.render({
-			el: '.app',
-			data: {
-				text: 'First'
-			}
-		});
+Brackets
+	.addComponent('text', {
+		data: {
+			text: 'First app'
+		},
+		template: '{{$text}}'
+	})
+	.render({
+		el: '.app',
+		data: {
+			text: 'First'
+		}
+	});
 </script>
 ```
 
@@ -361,23 +361,23 @@ then it's parent component must have some root element in which the component is
 <div class="app">{{component shareArticle, articleName: 'Article 2'}}</div>
 <div class="app">{{component shareArticle, articleName: 'Article 3'}}</div>
 <script>
-	Brackets
-		.addComponent('shareButton', {
-			data: {
-				number: 0
-			},
-			methods: {
-				updateNumber: function () {
-					this.number ++;
-				}
-			},
-			template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
-		})
-		.addComponent('shareArticle', {
-			template: '<div>{{$articleName}} => {{component shareButton}}</div>'
-		})
-		.render({
-			el: '.app'
-		});
+Brackets
+	.addComponent('shareButton', {
+		data: {
+			number: 0
+		},
+		methods: {
+			updateNumber: function () {
+				this.number ++;
+			}
+		},
+		template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
+	})
+	.addComponent('shareArticle', {
+		template: '<div>{{$articleName}} => {{component shareButton}}</div>'
+	})
+	.render({
+		el: '.app'
+	});
 </script>
 ```
