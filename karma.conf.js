@@ -6,7 +6,6 @@ module.exports = function(config) {
 			'www/tests/stack.js'
 		],
 		plugins: [
-			'karma-firefox-launcher',
 			'karma-chrome-launcher',
 			'karma-chai',
 			'karma-mocha'
