@@ -1,7 +1,28 @@
-# Brackets template engine
+<h1 align="center">
+	{{Brackets}}
+	<br>
+	<img alt="undefined" src="https://img.shields.io/github/license/apicart/brackets.svg">
+</h1>
+
 - Small, flexible, easy to use, component-oriented javascript template engine.
-- **8 Kb minified (3 Kb Gzipped)**
-- Supports IE 10 +
+- ✅ **8 Kb minified (3 Kb Gzipped)**
+- ✅ Supports IE 10 +
+
+**Content**
+- [Hello World!](https://github.com/apicart/brackets/blob/master/readme.md#hello-world)
+- [Cache](https://github.com/apicart/brackets/blob/master/readme.md#cache)
+- [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
+- [Event handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
+- [Macros](https://github.com/apicart/brackets/blob/master/readme.md#macros)
+- [Filters](https://github.com/apicart/brackets/blob/master/readme.md#filters)
+- [Components](https://github.com/apicart/brackets/blob/master/readme.md#components)
+
+## Installation
+Brackets are under development and therefore they are not yet available on npm. You can use the cdn link.
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/apicart/brackets/dist/brackets.min.js"></script>
+```
 
 ## Hello World!
 Let's start with a simple example. We will dump the text into the `#app` element. The text is stored in the data object in the text parameter. Variables in have `$` the before name.
@@ -103,26 +124,65 @@ Inside the methods, you can access and change the data object through `this.some
 ## Macros
 There are the following macros provided by default.
 
-|                       Conditions                     |                                                  |
-|:----------------------------------------------------:|:------------------------------------------------:|
-| {{if $cond}} … {{elseif $cond}} … {{else}} … {{/if}} | If condition                                     |
+### Conditions
+<table>
+   <tbody>
+      <tr>
+         <td style="text-align:center">{{if $cond}} … {{elseif $cond}} … {{else}} … {{/if}}</td>
+         <td style="text-align:center">If condition</td>
+      </tr>
+   </tbody>
+</table>
 
-|                         Loops                        |                                                  |
-|:----------------------------------------------------:|:------------------------------------------------:|
-| {{for condition} … {/for}                            | For loop                                         |
-| {{while condition}} … {/while}                       | While loop                                       |
-| {{continueIf condition}}                             | Conditional jump to the next iteration           |
-| {{breakIf condition}                                 | Conditional loop break                           |
+### Loops
+<table>
+   <tbody>
+      <tr>
+         <td style="text-align:center">{{for condition} … {/for}</td>
+         <td style="text-align:center">For loop</td>
+      </tr>
+      <tr>
+         <td style="text-align:center">{{while condition}} … {/while}</td>
+         <td style="text-align:center">While loop</td>
+      </tr>
+      <tr>
+         <td style="text-align:center">{{continueIf condition}}</td>
+         <td style="text-align:center">Conditional jump to the next iteration</td>
+      </tr>
+      <tr>
+         <td style="text-align:center">{{breakIf condition}</td>
+         <td style="text-align:center">Conditional loop break</td>
+      </tr>
+   </tbody>
+</table>
 
-|                       Variables                      |                                                  |
-|:----------------------------------------------------:|:------------------------------------------------:|
-| {{var foo = value}}                                  | Creates variable                                 |
+### Variables
+<table>
+   <tbody>
+      <tr>
+         <td style="text-align:center">{{var foo = value}}</td>
+         <td style="text-align:center">Creates variable</td>
+      </tr>
+   </tbody>
+</table>
 
-|                        Other                         |                                                  |
-|:----------------------------------------------------:|:------------------------------------------------:|
-| {{dump variable}}                                    | Similar to console.log()                         |
-| {{js code}}                                          | Allows you to write pure javascript              |
-| {{component name, param1: value, parameter2: value}} | Allows you to reuse components                   |
+### Other
+<table>
+   <tbody>
+      <tr>
+         <td style="text-align:center">{{dump variable}}</td>
+         <td style="text-align:center">Similar to console.log()</td>
+      </tr>
+      <tr>
+         <td style="text-align:center">{{js code}}</td>
+         <td style="text-align:center">Allows you to write pure javascript</td>
+      </tr>
+      <tr>
+         <td style="text-align:center">{{component name, param1: value, parameter2: value}}</td>
+         <td style="text-align:center">Allows you to reuse components</td>
+      </tr>
+   </tbody>
+</table>
 
 ### How to create macro
 Macro in the context of the template engine is a piece of executable code.
