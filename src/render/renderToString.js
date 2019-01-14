@@ -1,4 +1,4 @@
-import {components, templateLiteralsEnabled} from '../shared/variables';
+import {components, filters, templateLiteralsEnabled} from '../shared/variables';
 import {selectorAttributeName} from './shared/variables';
 import {cloneObject, each} from '../shared/utils';
 import {tokenizeTemplate} from '../compiler/tokenizeTemplate';
@@ -25,6 +25,7 @@ export function renderToString(parameters) {
 
 	data['_runtime'] = {
 		components: components,
+		filters: filters,
 		renderedComponents: []
 	};
 

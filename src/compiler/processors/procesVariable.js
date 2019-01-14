@@ -36,12 +36,12 @@ export function processVariable(tokenMatchArray) {
 				throw 'Undefined filter: "' + filterName + '".';
 			}
 
-			variable = 'Brackets._filters.' + filterName + '(' + filterParameters.join(',') +')';
+			variable = '_runtime.filters.' + filterName + '(' + filterParameters.join(',') +')';
 		});
 	}
 
 	if (applyEscapeFilter) {
-		variable = 'Brackets._filters.escape(' + variable + ')';
+		variable = '_runtime.filters.escape(' + variable + ')';
 	}
 
 	return '_template += ' + variable + ';';

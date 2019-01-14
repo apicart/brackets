@@ -104,5 +104,4 @@ Brackets.addMacro = function (name, replacement) {
 
 
 generateMacrosRegularExpression();
-Brackets._filters = filters;
 Brackets.templateLiteral = templateLiteral;
