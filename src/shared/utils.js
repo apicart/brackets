@@ -29,6 +29,10 @@ export function each(iterable, callback) {
 	if (Array.isArray(iterable)) {
 		iterableLength = iterable.length;
 
+		if ( ! iterableLength) {
+			return;
+		}
+
 		for (iterator = 0; iterator < iterableLength; iterator ++) {
 			statement = callback(iterator, iterable[iterator]);
 
@@ -40,6 +44,10 @@ export function each(iterable, callback) {
 	} else {
 		keys = Object.keys(iterable);
 		keysLength = keys.length;
+
+		if ( ! keys.length) {
+			return;
+		}
 
 		for (iterator = 0; iterator < keysLength; iterator ++) {
 			key = keys[iterator];
