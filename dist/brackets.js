@@ -39,6 +39,10 @@
 		if (Array.isArray(iterable)) {
 			iterableLength = iterable.length;
 
+			if ( ! iterableLength) {
+				return;
+			}
+
 			for (iterator = 0; iterator < iterableLength; iterator ++) {
 				statement = callback(iterator, iterable[iterator]);
 
@@ -50,6 +54,10 @@
 		} else {
 			keys = Object.keys(iterable);
 			keysLength = keys.length;
+
+			if ( ! keys.length) {
+				return;
+			}
 
 			for (iterator = 0; iterator < keysLength; iterator ++) {
 				key = keys[iterator];
@@ -73,6 +81,46 @@
 		return Math.random().toString(36).substring(2, length);
 	}
 
+	/**
+	 * @param {string} componentName
+	 * @param {{}} componentDataFromTemplate
+	 * @return {string}
+	 */
+	function renderComponent(componentName, componentDataFromTemplate) {
+		var component = components.register[componentName];
+
+		if (typeof component === 'undefined') {
+			throw new Error('Brackets: Component "' + componentName + '" was not found.');
+		}
+
+		var
+			componentHash = generateHash(),
+			componentData = component.data ? cloneObject(component.data) : {};
+
+		if (componentDataFromTemplate) {
+			each(componentDataFromTemplate, function (key, value) {
+				componentData[key] = value;
+			});
+		}
+
+		var
+			templateObject = Brackets.renderToString({
+				beforeRender: component.beforeRender,
+				cacheKey: componentName,
+				componentHash: componentHash,
+				data: componentData,
+				template: component.template
+			}),
+			renderedComponents = [{
+				componentHash: componentHash,
+				data: componentData,
+				componentName: componentName
+			}].concat(templateObject.templateRuntime.renderedComponents);
+
+		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
+		return templateObject.templateString;
+	}
+
 	var Brackets = {
 		devMode: false
 	};
@@ -89,41 +137,7 @@
 	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 	var components = {
 		register: {},
-		renderToString: function (componentName, componentDataFromTemplate) {
-			var component = components.register[componentName];
-
-			if (typeof component === 'undefined') {
-				throw new Error('Brackets: Component "' + componentName + '" was not found.');
-			}
-
-			var
-				componentHash = generateHash(),
-				componentData = component.data ? cloneObject(component.data) : {};
-
-			if (componentDataFromTemplate) {
-				each(componentDataFromTemplate, function (key, value) {
-					componentData[key] = value;
-				});
-			}
-
-			var
-				templateObject = Brackets.renderToString({
-					beforeRender: component.beforeRender,
-					cacheKey: componentName,
-					componentHash: componentHash,
-					data: componentData,
-					template: component.template
-				}),
-				renderedComponents = [{
-					componentHash: componentHash,
-					data: componentData,
-					componentName: componentName
-				}].concat(templateObject.templateRuntime.renderedComponents);
-
-			this.renderedComponents = this.renderedComponents.concat(renderedComponents);
-
-			return templateObject.templateString;
-		}
+		renderToString: renderComponent
 	};
 	var filters = {};
 	var macros = {
@@ -210,7 +224,6 @@
 
 
 	generateMacrosRegularExpression();
-	Brackets._filters = filters;
 	Brackets.templateLiteral = templateLiteral;
 
 	var selectorAttributeName = 'data-brackets-component';
@@ -302,12 +315,12 @@
 					throw 'Undefined filter: "' + filterName + '".';
 				}
 
-				variable = 'Brackets._filters.' + filterName + '(' + filterParameters.join(',') +')';
+				variable = '_runtime.filters.' + filterName + '(' + filterParameters.join(',') +')';
 			});
 		}
 
 		if (applyEscapeFilter) {
-			variable = 'Brackets._filters.escape(' + variable + ')';
+			variable = '_runtime.filters.escape(' + variable + ')';
 		}
 
 		return '_template += ' + variable + ';';
@@ -398,6 +411,7 @@
 
 		data['_runtime'] = {
 			components: components,
+			filters: filters,
 			renderedComponents: []
 		};
 
@@ -588,6 +602,7 @@
 				componentParameters.afterRender = components.register[componentParameters.componentName].afterRender;
 				componentParameters.beforeRender = components.register[componentParameters.componentName].beforeRender;
 
+				//attachParametersDescriptors(componentParameters);
 				attachEventHandlers(targetElement, componentParameters);
 
 				if (typeof componentParameters.afterRender === 'function') {
@@ -595,6 +610,7 @@
 				}
 			});
 
+			//attachParametersDescriptors(parametersCopy);
 			attachEventHandlers(targetElement, parametersCopy);
 			targetElement.removeAttribute(nonInitializedElementAttributeName);
 			parametersCopy.afterRender.call(parametersCopy, targetElement);
