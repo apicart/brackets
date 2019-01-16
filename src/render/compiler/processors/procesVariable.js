@@ -1,5 +1,5 @@
-import {filters} from '../../shared/variables';
-import {each} from '../../shared/utils';
+import {each} from "../../../shared/utils";
+
 
 /**
  * @param {[]} tokenMatchArray
@@ -9,7 +9,6 @@ export function processVariable(tokenMatchArray) {
 	var
 		applyEscapeFilter = true,
 		filterArray,
-		filterFunction,
 		filterName,
 		filterParameters = [],
 		tokenFullMatch = tokenMatchArray[0],
@@ -30,18 +29,13 @@ export function processVariable(tokenMatchArray) {
 
 			filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 			filterParameters.unshift(variable);
-			filterFunction = filters[filterName];
 
-			if (typeof filterFunction === 'undefined') {
-				throw 'Undefined filter: "' + filterName + '".';
-			}
-
-			variable = '_runtime.filters.' + filterName + '(' + filterParameters.join(',') +')';
+			variable = '_runtime.getFilter(\'' + filterName + '\')(' + filterParameters.join(',') +')';
 		});
 	}
 
 	if (applyEscapeFilter) {
-		variable = '_runtime.filters.escape(' + variable + ')';
+		variable = '_runtime.getFilter(\'escape\')(' + variable + ')';
 	}
 
 	return '_template += ' + variable + ';';
