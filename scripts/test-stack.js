@@ -1,5 +1,5 @@
 export default {
-	input: 'tests/engine.js',
+	input: 'tests/stack-browser.js',
 	output: {
 		file: 'tests/stack-browser.js',
 		format: 'umd',
