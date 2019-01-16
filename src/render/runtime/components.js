@@ -1,6 +1,7 @@
 import {Brackets, selectorAttributeName} from '../../shared/variables';
 import {cloneObject, each, generateHash} from '../../shared/utils';
 import {createRenderingInstanceObject} from './renderingInstances';
+import {renderToString} from "../renderToString";
 
 
 var components = {
@@ -25,7 +26,7 @@ export function renderComponent(name, componentDataFromTemplate) {
 	componentRenderingInstance._parent = this.parentInstance;
 
 	var
-		templateObject = Brackets.renderToString(componentRenderingInstance),
+		templateObject = renderToString(componentRenderingInstance),
 		renderedComponents = [componentRenderingInstance.id].concat(templateObject.templateRuntime.renderedComponents);
 
 	this.renderedComponents = this.renderedComponents.concat(renderedComponents);
@@ -59,7 +60,7 @@ export function getComponent(name, required) {
 	var componentExists = name in components.register;
 
 	if ( ! componentExists) {
-		if (required) {
+		if (required !== false) {
 			throw new Error('Brackets: Component "' + name + '" not found.');
 		}
 
