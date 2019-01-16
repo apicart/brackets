@@ -332,7 +332,7 @@ First, second, third
 ```
 
 ## Complete Rendering Configuration
-```
+```javascript
 Brackets.render({
 	afterRender: <function>,
 	beforeRender: <function>,
@@ -404,7 +404,7 @@ Brackets
 ```
 
 ### Complete Components Configuration
-```
+```javascript
 Brackets.render({
 	afterRender: <function>,
 	beforeRender: <function>,
