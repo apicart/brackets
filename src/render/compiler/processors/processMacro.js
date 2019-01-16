@@ -1,5 +1,6 @@
-import {macros} from '../../shared/variables';
-import {each} from '../../shared/utils';
+import {each} from '../../../shared/utils';
+import {getMacros} from "../../runtime/macros";
+
 
 /**
  * @param {[]} tokenMatchArray
@@ -8,6 +9,7 @@ import {each} from '../../shared/utils';
 export function processMacro(tokenMatchArray) {
 	var
 		macroName = tokenMatchArray[0],
+		macros = getMacros(),
 		parsedToken;
 
 	tokenMatchArray.shift();
