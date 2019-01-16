@@ -24,7 +24,7 @@ export function addFilter(name, callback) {
  * @return {function|null}
  */
 export function getFilter(name, required) {
-	if ( !! required && ! (name in filters)) {
+	if (required !== false && ! (name in filters)) {
 		throw new Error('Brackets: Filter "' + name + '" not found.');
 	}
 
