@@ -2,7 +2,11 @@ import {Brackets, templateLiteral} from './shared/variables';
 import {render} from './render/render';
 import {renderToString} from './render/renderToString';
 import {addMacro, getMacros} from './render/runtime/macros';
-import {getRenderingInstance, getRenderingInstances} from './render/runtime/renderingInstances';
+import {
+	createRenderingInstanceObject,
+	getRenderingInstance,
+	getRenderingInstances
+} from './render/runtime/renderingInstances';
 import {addComponent, getComponents} from './render/runtime/components';
 import {addFilter, getFilter, getFilters} from './render/runtime/filters';
 
@@ -23,7 +27,13 @@ Brackets.getRenderingInstance = getRenderingInstance;
 Brackets.getRenderingInstances = getRenderingInstances;
 
 Brackets.render = render;
-Brackets.renderToString = renderToString;
+/**
+ * @param {{}} parameters
+ * @return {{}}
+ */
+Brackets.renderToString = function (parameters) {
+	return renderToString(createRenderingInstanceObject(parameters));
+};
 
 
 if (typeof window !== 'undefined' && typeof window.Brackets === 'undefined') {
