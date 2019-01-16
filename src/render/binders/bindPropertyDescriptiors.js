@@ -20,7 +20,7 @@ export function bindPropertyDescriptors(renderingInstance) {
 				renderingInstance._data[propertyKey] = value;
 
 				if (renderingInstance._status === renderingInstancesStatuses.rendered) {
-					redrawInstance(renderingInstance.id);
+					redrawInstance(renderingInstance.instanceId);
 				}
 			}
 		});

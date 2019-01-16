@@ -27,7 +27,7 @@ export function renderToString(renderingInstance) {
 		compiledTemplate,
 		data = renderingInstance.data,
 		runtime = {
-			parentInstance: renderingInstance.id,
+			parentInstance: renderingInstance.instanceId,
 			components: getComponents(),
 			getFilter: getFilter,
 			renderedComponents: []

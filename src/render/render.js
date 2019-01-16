@@ -28,7 +28,7 @@ export function render(parameters) {
 	}
 
 	each(targetElements, function (key, targetElement) {
-		redrawInstance(createRenderingInstanceObject(parameters, targetElement).id);
+		redrawInstance(createRenderingInstanceObject(parameters, targetElement).instanceId);
 	});
 
 	return Brackets;

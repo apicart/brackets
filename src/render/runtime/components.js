@@ -27,7 +27,7 @@ export function renderComponent(name, componentDataFromTemplate) {
 
 	var
 		templateObject = renderToString(componentRenderingInstance),
-		renderedComponents = [componentRenderingInstance.id].concat(templateObject.templateRuntime.renderedComponents);
+		renderedComponents = [componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
 
 	this.renderedComponents = this.renderedComponents.concat(renderedComponents);
 	return templateObject.templateString;
