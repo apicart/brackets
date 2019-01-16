@@ -1,7 +1,7 @@
 import banner from 'rollup-plugin-banner'
 
 export default {
-	input: 'src/core.js',
+	input: 'src/engine.js',
 	output: {
 		file: 'dist/brackets.js',
 		format: 'umd',

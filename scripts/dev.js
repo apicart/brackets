@@ -1,5 +1,5 @@
 export default {
-	input: 'src/core.js',
+	input: 'src/engine.js',
 	output: {
 		file: 'dist/brackets.dev.js',
 		format: 'umd',
