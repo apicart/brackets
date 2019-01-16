@@ -1,5 +1,6 @@
-import {macrosRegularExpression} from '../shared/variables';
-import {each} from '../shared/utils';
+import {each} from '../../shared/utils';
+import {macrosRegularExpression} from "../runtime/macros";
+
 
 var
 	tokenReplacement = '}}{{',
