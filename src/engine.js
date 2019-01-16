@@ -1,9 +1,9 @@
+import {Brackets, templateLiteral} from "./shared/variables";
 import {render} from './render/render';
 import {renderToString} from './render/renderToString';
 import {addMacro, getMacros} from "./render/runtime/macros";
 import {getRenderingInstance, getRenderingInstances} from "./render/runtime/renderingInstances";
 import {addComponent, getComponents} from "./render/runtime/components";
-import {Brackets, templateLiteral} from "./shared/variables";
 import {addFilter, getFilter, getFilters} from "./render/runtime/filters";
 
 
