@@ -1,4 +1,4 @@
-import {each} from "../../../shared/utils";
+import {each} from '../../../shared/utils';
 
 
 /**

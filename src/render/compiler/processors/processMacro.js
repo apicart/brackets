@@ -1,5 +1,5 @@
 import {each} from '../../../shared/utils';
-import {getMacros} from "../../runtime/macros";
+import {getMacros} from '../../runtime/macros';
 
 
 /**

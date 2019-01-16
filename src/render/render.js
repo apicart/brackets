@@ -1,7 +1,7 @@
-import {Brackets} from "../shared/variables";
+import {Brackets} from '../shared/variables';
 import {each} from '../shared/utils';
-import {redrawInstance} from "./redrawler";
-import {createRenderingInstanceObject} from "./runtime/renderingInstances";
+import {redrawInstance} from './redrawler';
+import {createRenderingInstanceObject} from './runtime/renderingInstances';
 
 
 /**

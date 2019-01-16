@@ -1,8 +1,8 @@
-import {templateLiteral} from "../../shared/variables";
+import {templateLiteral} from '../../shared/variables';
 import {each} from '../../shared/utils';
 import {processVariable} from './processors/procesVariable';
 import {processMacro} from './processors/processMacro';
-import {getMacros} from "../runtime/macros";
+import {getMacros} from '../runtime/macros';
 
 
 var variableMatchRegularExpression = /^\$/;

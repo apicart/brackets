@@ -1,4 +1,4 @@
-import {Brackets} from "../../shared/variables";
+import {Brackets} from '../../shared/variables';
 
 
 var filters = {};
@@ -8,7 +8,7 @@ var filters = {};
  * @param {string} name
  * @param {function} callback
  */
-export function addFilter (name, callback) {
+export function addFilter(name, callback) {
 	if (getFilter(name, false)) {
 		throw new Error('Brackets: Filter "' + name +'" is already defined.');
 	}
@@ -28,7 +28,7 @@ export function getFilter(name, required) {
 		throw new Error('Brackets: Filter "' + name + '" not found.');
 	}
 
-	return filters[name] || null
+	return filters[name] || null;
 }
 
 

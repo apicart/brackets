@@ -1,6 +1,6 @@
-import {Brackets, selectorAttributeName} from "../../shared/variables";
-import {cloneObject, each, generateHash} from "../../shared/utils";
-import {createRenderingInstanceObject} from "./renderingInstances";
+import {Brackets, selectorAttributeName} from '../../shared/variables';
+import {cloneObject, each, generateHash} from '../../shared/utils';
+import {createRenderingInstanceObject} from './renderingInstances';
 
 
 var components = {
@@ -45,7 +45,7 @@ export function addComponent(name, parameters) {
 
 	parameters._kind = 'component';
 	components.register[name] = parameters;
-	
+
 	return Brackets;
 }
 
@@ -59,7 +59,7 @@ export function getComponent(name, required) {
 	var componentExists = name in components.register;
 
 	if ( ! componentExists) {
-		if ( !! required) {
+		if (required) {
 			throw new Error('Brackets: Component "' + name + '" not found.');
 		}
 

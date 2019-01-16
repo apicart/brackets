@@ -1,4 +1,4 @@
-import {Brackets, eventHandlersAttributeName} from "../../shared/variables";
+import {Brackets, eventHandlersAttributeName} from '../../shared/variables';
 import {each} from '../../shared/utils';
 
 
@@ -61,7 +61,7 @@ export function bindEventHandlers(renderingInstance) {
 				}
 
 				eventHandler.addEventListener(eventName, function (event) {
-					eventFunction.apply(renderingInstance.data, [event].concat(eventArguments))
+					eventFunction.apply(renderingInstance.data, [event].concat(eventArguments));
 				});
 			})(eventHandler, event);
 		});

@@ -2,9 +2,9 @@ import {templateLiteralsEnabled, selectorAttributeName, eventHandlersAttributeNa
 import {each} from '../shared/utils';
 import {tokenizeTemplate} from './compiler/tokenizeTemplate';
 import {compileTemplate} from './compiler/compileTemplate';
-import {getFilter} from "./runtime/filters";
-import {getComponents} from "./runtime/components";
-import {renderingInstancesStatuses} from "./runtime/renderingInstances";
+import {getFilter} from './runtime/filters';
+import {getComponents} from './runtime/components';
+import {renderingInstancesStatuses} from './runtime/renderingInstances';
 
 
 var templatesCache = {};

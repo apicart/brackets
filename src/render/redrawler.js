@@ -1,8 +1,8 @@
-import {renderToString} from "./renderToString";
-import {each} from "../shared/utils";
-import {getRenderingInstance} from "./runtime/renderingInstances";
-import {bindEventHandlers} from "./binders/bindEventHandlers";
-import {nonInitializedElementAttributeName} from "../shared/variables";
+import {renderToString} from './renderToString';
+import {each} from '../shared/utils';
+import {getRenderingInstance} from './runtime/renderingInstances';
+import {bindEventHandlers} from './binders/bindEventHandlers';
+import {nonInitializedElementAttributeName} from '../shared/variables';
 
 
 export function redrawInstance(instanceId) {

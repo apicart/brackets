@@ -1,6 +1,6 @@
-import {cloneObject, each, generateHash} from "../../shared/utils";
-import {selectorAttributeName} from "../../shared/variables";
-import {bindPropertyDescriptors} from "../binders/bindPropertyDescriptiors";
+import {cloneObject, each, generateHash} from '../../shared/utils';
+import {selectorAttributeName} from '../../shared/variables';
+import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
 
 
 export var renderingInstances = [];
@@ -34,7 +34,7 @@ export function getRenderingInstances(kind) {
  */
 export function getRenderingInstance(id, required) {
 	if ( !! required && ! (id in renderingInstances)) {
-		throw new Error('Brackets: Rendering instance "' + id +'" not found.')
+		throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 	}
 
 	return renderingInstances[id];

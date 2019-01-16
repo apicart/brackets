@@ -1,4 +1,4 @@
-import {Brackets} from "../../shared/variables";
+import {Brackets} from '../../shared/variables';
 
 
 var macros = {
