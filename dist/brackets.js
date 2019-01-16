@@ -397,7 +397,7 @@
 					renderingInstance._data[propertyKey] = value;
 
 					if (renderingInstance._status === renderingInstancesStatuses.rendered) {
-						redrawInstance(renderingInstance.id);
+						redrawInstance(renderingInstance.instanceId);
 					}
 				}
 			});
@@ -477,32 +477,32 @@
 
 		var
 			instance = {
-			afterRender: parameters.afterRender || function () {},
-			beforeRender: parameters.beforeRender || function () {},
-			cacheKey: parameters.cacheKey || null,
-			data: parameters.data ? cloneObject(parameters.data) : {},
-			el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
-			id: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
-			methods: parameters.methods || {},
-			onStatusChange: parameters.onStatusChange || function () {},
-			template: parameters.template,
-			_hash: hash,
-			_kind: parameters._kind || 'view',
-			_parent: null,
-			_setStatus: function (status) {
-				this._status = status;
-				this.onStatusChange.call(this, status);
-			},
-			_status: renderingInstancesStatuses.pending
-		};
+				afterRender: parameters.afterRender || function () {},
+				beforeRender: parameters.beforeRender || function () {},
+				cacheKey: parameters.cacheKey || null,
+				data: parameters.data ? cloneObject(parameters.data) : {},
+				el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
+				instanceId: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
+				methods: parameters.methods || {},
+				onStatusChange: parameters.onStatusChange || function () {},
+				template: parameters.template,
+				_hash: hash,
+				_kind: parameters._kind || 'view',
+				_parent: null,
+				_setStatus: function (status) {
+					this._status = status;
+					this.onStatusChange.call(this, status);
+				},
+				_status: renderingInstancesStatuses.pending
+			};
 
 		bindPropertyDescriptors(instance);
 
-		if (getRenderingInstance(instance.id, false)) {
-			throw new Error('Brackets: Rendering instance "' + instance.id +'" is already defined.');
+		if (getRenderingInstance(instance.instanceId, false)) {
+			throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 		}
 
-		renderingInstances[instance.id] = instance;
+		renderingInstances[instance.instanceId] = instance;
 
 		return instance;
 	}
@@ -530,7 +530,7 @@
 
 		var
 			templateObject = renderToString(componentRenderingInstance),
-			renderedComponents = [componentRenderingInstance.id].concat(templateObject.templateRuntime.renderedComponents);
+			renderedComponents = [componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
 
 		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
 		return templateObject.templateString;
@@ -605,7 +605,7 @@
 			compiledTemplate,
 			data = renderingInstance.data,
 			runtime = {
-				parentInstance: renderingInstance.id,
+				parentInstance: renderingInstance.instanceId,
 				components: getComponents(),
 				getFilter: getFilter,
 				renderedComponents: []
@@ -787,7 +787,7 @@
 		}
 
 		each(targetElements, function (key, targetElement) {
-			redrawInstance(createRenderingInstanceObject(parameters, targetElement).id);
+			redrawInstance(createRenderingInstanceObject(parameters, targetElement).instanceId);
 		});
 
 		return Brackets;
