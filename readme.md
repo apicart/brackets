@@ -6,7 +6,7 @@
 </h1>
 
 - Small, flexible, easy to use, component-oriented javascript template engine.
-- ✅ **8 Kb minified (3 Kb Gzipped)**
+- ✅ **10 Kb minified (5 Kb Gzipped)**
 - ✅ Supports IE 10 +
 - ✅ [TRY IT ON CODEPEN](https://codepen.io/apicart/pen/OraYJj)
 
@@ -15,10 +15,16 @@
 - [Cache](https://github.com/apicart/brackets/blob/master/readme.md#cache)
 - [Templates](https://github.com/apicart/brackets/blob/master/readme.md#templates)
 - [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
-- [Event handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
+- [Event Handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
 - [Macros](https://github.com/apicart/brackets/blob/master/readme.md#macros)
 - [Filters](https://github.com/apicart/brackets/blob/master/readme.md#filters)
 - [Components](https://github.com/apicart/brackets/blob/master/readme.md#components)
+- [Complete Components Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-components-configuration)
+- [Complete Rendering Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-rendering-configuration)
+- [Configuration Reserved Keywords](https://github.com/apicart/brackets/blob/master/readme.md#configuration-reserved-keywords)
+- [Rendering Instances](https://github.com/apicart/brackets/blob/master/readme.md#rendering-instances)
+
+
 
 ## Installation
 Brackets are under development and therefore they are not yet available on npm. You can use the cdn link.
@@ -325,6 +331,21 @@ Brackets
 First, second, third
 ```
 
+## Complete Rendering Configuration
+```
+Brackets.render({
+	afterRender: <function>,
+	beforeRender: <function>,
+	cacheKey: <string|null>,
+	data: <object|null>,
+	el: <string|Element|NodeList>,
+	instanceId <string|null>: ,
+	methods: <object|null>,
+	onStatusChange: <function|null>,
+	template: <string|null>,
+})
+```
+
 ## Components
 Components helps to create your code more reusable. You can for example create a button with some functionality
 and use it on multiple places with different parameters.
@@ -380,4 +401,47 @@ Brackets
 		el: '.app'
 	});
 </script>
+```
+
+### Complete Components Configuration
+```
+Brackets.render({
+	afterRender: <function>,
+	beforeRender: <function>,
+	cacheKey: <string|null>,
+	data: <object|null>,
+	instanceId <string|null>: ,
+	methods: <object|null>,
+	onStatusChange: <function|null>,
+	template: <string>,
+})
+```
+
+## Configuration Reserved Keywords
+This keywords you must not use in the configuration object `_hash, _kind, _parent, _setStatus, _status`.
+
+## Rendering Instances
+Rendering instances are interactive objects that were used during the rendering process of each template or component. 
+Each rendering instance have an `id`. Because there can be multiple instances during the rendering process, you can set `instanceId` parameter. This parameter will be than used as a prefix for the instance so the instance id will be `<your-id>-<unique hash>`. This will help you to find the instance you want to work with.
+
+The following example shows how to work with instances.
+```javascript
+Brackets.getRenderingInstances() // Returns an object containing all rendering instances
+var myInstance = Brackets.getRenderingInstance('my-instance-1234') // Returns the selected instance
+myInstance.data.number += 2 // Changing data structure in the renderingInstance will trigger the selected instance redrawal
+```
+
+Instances have also some statuses. The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
+
+You can listen to these changes by providing `onStatusChange` parameter, that must be a function. The rendered instance is passed as `this` parameter and the status parameter is passed as a function argument. The usage is as follows.
+
+```javascript
+Brackets.render({
+	...
+	onStatusChange: function (status) {
+		console.log(this) // Will log the whole instance
+		console.log(status) // Logs current instance status
+	}
+	...
+})
 ```
