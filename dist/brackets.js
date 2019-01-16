@@ -8,6 +8,27 @@
 	factory();
 }(function () { 'use strict';
 
+	var Brackets = {
+		devMode: false
+	};
+
+	var eventHandlersAttributeName = 'b-on';
+	var nonInitializedElementAttributeName = 'b-init';
+	var selectorAttributeName = 'data-b-instance';
+
+	var templateLiteralsEnabled = (function () {
+		try {
+			eval('`x`');
+			return true;
+		}
+		catch (e) {
+			return false;
+		}
+	})();
+
+
+	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
+
 	/**
 	 * @param {{}} obj
 	 * @return {{}}
@@ -81,65 +102,6 @@
 		return Math.random().toString(36).substring(2, length);
 	}
 
-	/**
-	 * @param {string} componentName
-	 * @param {{}} componentDataFromTemplate
-	 * @return {string}
-	 */
-	function renderComponent(componentName, componentDataFromTemplate) {
-		var component = components.register[componentName];
-
-		if (typeof component === 'undefined') {
-			throw new Error('Brackets: Component "' + componentName + '" was not found.');
-		}
-
-		var
-			componentHash = generateHash(),
-			componentData = component.data ? cloneObject(component.data) : {};
-
-		if (componentDataFromTemplate) {
-			each(componentDataFromTemplate, function (key, value) {
-				componentData[key] = value;
-			});
-		}
-
-		var
-			templateObject = Brackets.renderToString({
-				beforeRender: component.beforeRender,
-				cacheKey: componentName,
-				componentHash: componentHash,
-				data: componentData,
-				template: component.template
-			}),
-			renderedComponents = [{
-				componentHash: componentHash,
-				data: componentData,
-				componentName: componentName
-			}].concat(templateObject.templateRuntime.renderedComponents);
-
-		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
-		return templateObject.templateString;
-	}
-
-	var Brackets = {
-		devMode: false
-	};
-	var templateLiteralsEnabled = (function () {
-		try {
-			eval('`x`');
-			return true;
-		}
-		catch (e) {
-			return false;
-		}
-	})();
-	var macrosRegularExpression;
-	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
-	var components = {
-		register: {},
-		renderToString: renderComponent
-	};
-	var filters = {};
 	var macros = {
 		breakif: 'if (#0) break;',
 		continueif: 'if (#0) continue;',
@@ -153,8 +115,8 @@
 			componentData = '{' + parametersToArray.join(',') + '}';
 
 			return '_template += _runtime.components.renderToString.call('
-				+ '_runtime, \'' + componentName + '\', ' + componentData
-			+ ');';
+					+ '_runtime, \'' + componentName + '\', ' + componentData
+				+ ');';
 		},
 		dump: 'console.log(#0);',
 		else: '} else {',
@@ -170,6 +132,33 @@
 	};
 
 
+	var macrosRegularExpression;
+
+
+	/**
+	 * @param {string} name
+	 * @param {string|function} replacement
+	 */
+	function addMacro(name, replacement) {
+		if (name in macros) {
+			throw new Error('Brackets: Macro "' + name +'" is already defined.');
+		}
+
+		macros[name] = replacement;
+		generateMacrosRegularExpression();
+
+		return Brackets;
+	}
+
+
+	/**
+	 * @return {{}}
+	 */
+	function getMacros() {
+		return macros;
+	}
+
+
 	function generateMacrosRegularExpression() {
 		macrosRegularExpression = new RegExp(
 			/* eslint-disable-next-line no-useless-escape */
@@ -178,55 +167,7 @@
 	}
 
 
-	filters.escape = function (variable) {
-		var entityMap = {
-			'"': '&quot;',
-			'&': '&amp;',
-			'\'': '&#39;',
-			'/': '&#x2F;',
-			'<': '&lt;',
-			'=': '&#x3D;',
-			'>': '&gt;',
-			'`': '&#x60;'
-		};
-
-		return String(variable).replace(/[&<>"'`=/]/g, function (token) {
-			return entityMap[token];
-		});
-	};
-
-
-	Brackets.addComponent = function (name, parameters) {
-		components.register[name] = parameters;
-		return Brackets;
-	};
-
-
-	/**
-	 * @param {string} name
-	 * @param {function} callback
-	 */
-	Brackets.addFilter = function (name, callback) {
-		filters[name] = callback;
-		return Brackets;
-	};
-
-
-	/**
-	 * @param {string} name
-	 * @param {string|function} replacement
-	 */
-	Brackets.addMacro = function (name, replacement) {
-		macros[name] = replacement;
-		generateMacrosRegularExpression();
-		return Brackets;
-	};
-
-
 	generateMacrosRegularExpression();
-	Brackets.templateLiteral = templateLiteral;
-
-	var selectorAttributeName = 'data-brackets-component';
 
 	var
 		tokenReplacement = '}}{{',
@@ -288,7 +229,6 @@
 		var
 			applyEscapeFilter = true,
 			filterArray,
-			filterFunction,
 			filterName,
 			filterParameters = [],
 			tokenFullMatch = tokenMatchArray[0],
@@ -309,18 +249,13 @@
 
 				filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 				filterParameters.unshift(variable);
-				filterFunction = filters[filterName];
 
-				if (typeof filterFunction === 'undefined') {
-					throw 'Undefined filter: "' + filterName + '".';
-				}
-
-				variable = '_runtime.filters.' + filterName + '(' + filterParameters.join(',') +')';
+				variable = '_runtime.getFilter(\'' + filterName + '\')(' + filterParameters.join(',') +')';
 			});
 		}
 
 		if (applyEscapeFilter) {
-			variable = '_runtime.filters.escape(' + variable + ')';
+			variable = '_runtime.getFilter(\'escape\')(' + variable + ')';
 		}
 
 		return '_template += ' + variable + ';';
@@ -333,6 +268,7 @@
 	function processMacro(tokenMatchArray) {
 		var
 			macroName = tokenMatchArray[0],
+			macros = getMacros(),
 			parsedToken;
 
 		tokenMatchArray.shift();
@@ -355,12 +291,10 @@
 
 	/**
 	 * @param {{}} tokens
-	 * @param {{}} data
+	 * @param {{}} templateParametersNames
 	 * @return {Function}
 	 */
-	function compileTemplate(tokens, data) {
-		data = data || {};
-
+	function compileTemplate(tokens, templateParametersNames) {
 		var
 			macroTokenArray,
 			macroTokenFirstPart,
@@ -376,7 +310,7 @@
 				if (macroTokenFirstPart.match(variableMatchRegularExpression)) {
 					templateString += processVariable(macroTokenArray);
 
-				} else if (macroTokenFirstPart in macros) {
+				} else if (macroTokenFirstPart in getMacros()) {
 					templateString += processMacro(macroTokenArray);
 
 				} else {
@@ -387,33 +321,297 @@
 
 		templateString += 'return _template;';
 
-		return new Function(Object.keys(data).join(','), templateString);
+		return new Function(templateParametersNames.join(','), templateString);
+	}
+
+	var filters = {};
+
+
+	/**
+	 * @param {string} name
+	 * @param {function} callback
+	 */
+	function addFilter(name, callback) {
+		if (getFilter(name, false)) {
+			throw new Error('Brackets: Filter "' + name +'" is already defined.');
+		}
+
+		filters[name] = callback;
+		return Brackets;
+	}
+
+
+	/**
+	 * @param {string} name
+	 * @param {boolean|null} required
+	 * @return {function|null}
+	 */
+	function getFilter(name, required) {
+		if ( !! required && ! (name in filters)) {
+			throw new Error('Brackets: Filter "' + name + '" not found.');
+		}
+
+		return filters[name] || null;
+	}
+
+
+	/**
+	 * @return {{}}
+	 */
+	function getFilters() {
+		return filters;
+	}
+
+
+	addFilter('escape', function (variable) {
+		var entityMap = {
+			'"': '&quot;',
+			'&': '&amp;',
+			'\'': '&#39;',
+			'/': '&#x2F;',
+			'<': '&lt;',
+			'=': '&#x3D;',
+			'>': '&gt;',
+			'`': '&#x60;'
+		};
+
+		return String(variable).replace(/[&<>"'`=/]/g, function (token) {
+			return entityMap[token];
+		});
+	});
+
+	/**
+	 * @param {{}} renderingInstance
+	 */
+	function bindPropertyDescriptors(renderingInstance) {
+		renderingInstance._data = renderingInstance._data ? cloneObject(renderingInstance.data) : {};
+
+		each(renderingInstance.data, function (propertyKey, propertyValue) {
+			renderingInstance._data[propertyKey] = propertyValue;
+
+			Object.defineProperty(renderingInstance.data, propertyKey, {
+				get: function () {
+					return renderingInstance._data[propertyKey];
+				},
+				set: function (value) {
+					renderingInstance._data[propertyKey] = value;
+
+					if (renderingInstance._status === renderingInstancesStatuses.rendered) {
+						redrawInstance(renderingInstance.id);
+					}
+				}
+			});
+		});
+	}
+
+	var renderingInstances = [];
+	var renderingInstancesStatuses = {
+		pending: 'pending',
+		processing: 'processing',
+		rendered: 'rendered'
+	};
+
+	function getRenderingInstances(kind) {
+		if ( ! kind) {
+			return renderingInstances;
+		}
+
+		var selectedInstances = {};
+
+		each(renderingInstances, function (id, instance) {
+			if (instance._kind === kind) {
+				selectedInstances[id] = instance;
+			}
+		});
+
+		return selectedInstances;
+	}
+
+
+	/**
+	 * @param {string} id
+	 * @param {boolean|null} required
+	 * @return {*}
+	 */
+	function getRenderingInstance(id, required) {
+		if ( !! required && ! (id in renderingInstances)) {
+			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
+		}
+
+		return renderingInstances[id];
+	}
+
+
+	/**
+	 * @param {{}} parameters
+	 * @param {Element|null} targetElement
+	 * @return {{}}
+	 */
+	function createRenderingInstanceObject(parameters, targetElement) {
+		parameters = cloneObject(parameters);
+		var hash = targetElement ? targetElement.getAttribute(selectorAttributeName) : null;
+
+		if ( ! hash) {
+			hash = generateHash();
+
+			if (targetElement) {
+				targetElement.setAttribute(selectorAttributeName, hash);
+			}
+		}
+
+		parameters.el = '[' + selectorAttributeName + '="' + hash +'"]';
+
+		if ( ! parameters.template && targetElement) {
+			parameters.template = targetElement.innerHTML;
+
+		} else if (parameters.template && parameters.template.match(/^#\S+/)) {
+			var templateElement = document.querySelector(parameters.template);
+
+			if (templateElement) {
+				parameters.template = templateElement.innerHTML;
+			}
+
+		} else if ( ! parameters.template && ! targetElement) {
+			throw new Error('Brackets: No template or target element provided for rendering.');
+		}
+
+		var instance = {
+			afterRender: parameters.afterRender || function () {},
+			beforeRender: parameters.beforeRender || function () {},
+			cacheKey: parameters.cacheKey || null,
+			data: parameters.data ? cloneObject(parameters.data) : {},
+			el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
+			id: parameters.instanceId || hash,
+			methods: parameters.methods || {},
+			onStatusChange: parameters.onStatusChange || function () {},
+			template: parameters.template,
+			_hash: hash,
+			_kind: parameters._kind || 'view',
+			_parent: null,
+			_setStatus: function (status) {
+				this._status = status;
+				this.onStatusChange.call(this, status);
+			},
+			_status: renderingInstancesStatuses.pending
+		};
+
+		bindPropertyDescriptors(instance);
+
+		if (getRenderingInstance(instance.id, false)) {
+			throw new Error('Brackets: Rendering instance "' + instance.id +'" is already defined.');
+		}
+
+		renderingInstances[instance.id] = instance;
+
+		return instance;
+	}
+
+	var components = {
+		register: {},
+		renderToString: renderComponent
+	};
+
+
+	/**
+	 * @param {string} name
+	 * @param {{}} componentDataFromTemplate
+	 * @return {string}
+	 */
+	function renderComponent(name, componentDataFromTemplate) {
+		var componentRenderingInstance = getComponent(name);
+		if (componentDataFromTemplate) {
+			each(componentDataFromTemplate, function (key, value) {
+				componentRenderingInstance.data[key] = value;
+			});
+		}
+
+		componentRenderingInstance._parent = this.parentInstance;
+
+		var
+			templateObject = Brackets.renderToString(componentRenderingInstance),
+			renderedComponents = [componentRenderingInstance.id].concat(templateObject.templateRuntime.renderedComponents);
+
+		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
+		return templateObject.templateString;
+	}
+
+
+	/**
+	 * @param {string} name
+	 * @param {{}} parameters
+	 * @return {Brackets}
+	 */
+	function addComponent(name, parameters) {
+		if (getComponent(name, false)) {
+			throw new Error('Brackets: Component "' + name +'" is already defined.');
+		}
+
+		parameters._kind = 'component';
+		components.register[name] = parameters;
+
+		return Brackets;
+	}
+
+
+	/**
+	 * @param {string} name
+	 * @param {boolean|null} required
+	 * @return {{}}
+	 */
+	function getComponent(name, required) {
+		var componentExists = name in components.register;
+
+		if ( ! componentExists) {
+			if (required) {
+				throw new Error('Brackets: Component "' + name + '" not found.');
+			}
+
+			return null;
+		}
+
+		var
+			componentParameters = cloneObject(components.register[name]),
+			renderingInstanceClone = createRenderingInstanceObject(componentParameters),
+			hash = generateHash();
+
+		renderingInstanceClone._hash = hash;
+		renderingInstanceClone.el ='[' + selectorAttributeName + '="' + hash + '"]';
+		return renderingInstanceClone;
+	}
+
+
+	function getComponents() {
+		return components;
 	}
 
 	var templatesCache = {};
 
+
 	/**
-	 * @param {{}} parameters
-	 * @return {*}
+	 * @param {{}} renderingInstance
+	 * @return {{}}
 	 */
-	function renderToString(parameters) {
-		if (typeof parameters.beforeRender === 'function') {
-			parameters.beforeRender.call(parameters);
+	function renderToString(renderingInstance) {
+		renderingInstance._setStatus(renderingInstancesStatuses.processing);
+
+		if (typeof renderingInstance.beforeRender === 'function') {
+			renderingInstance.beforeRender.call(renderingInstance);
 		}
 
 		var
-			cacheKey = parameters.cacheKey || null,
+			cacheKey = renderingInstance.cacheKey,
 			cacheKeyIsSet = typeof cacheKey === 'string',
 			compiledTemplate,
-			data = parameters.data ? cloneObject(parameters.data) : {},
-			template = parameters.template || null,
-			templateArguments = [];
-
-		data['_runtime'] = {
-			components: components,
-			filters: filters,
-			renderedComponents: []
-		};
+			data = renderingInstance.data,
+			runtime = {
+				parentInstance: renderingInstance.id,
+				components: getComponents(),
+				getFilter: getFilter,
+				renderedComponents: []
+			},
+			template = renderingInstance.template,
+			templateArguments = [runtime],
+			templateParametersNames = ['_runtime'];
 
 		if (cacheKeyIsSet && cacheKey in templatesCache) {
 			compiledTemplate = templatesCache[cacheKey];
@@ -425,53 +623,68 @@
 			}
 
 			var tokens = tokenizeTemplate(template);
-			compiledTemplate = compileTemplate(tokens, data);
+			compiledTemplate = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
 
 			if (cacheKeyIsSet && ! (cacheKey in templatesCache)) {
 				templatesCache[cacheKey] = compiledTemplate;
 			}
 		}
 
-		if (data) {
-			each(data, function (key, value) {
-				templateArguments.push(value);
-			});
-		}
+		each(data, function (key, value) {
+			templateArguments.push(value);
+		});
 
 		var templateString = compiledTemplate.apply(null, templateArguments);
 
-		if (parameters.componentHash) {
-			templateString = templateString.replace('b-on=', 'b-on-' + parameters.componentHash + '=');
+		if (renderingInstance._kind === 'component') {
+			templateString = templateString.replace(
+				new RegExp(eventHandlersAttributeName + '=', 'g'),
+				eventHandlersAttributeName + '-' + renderingInstance._hash + '='
+			);
+
 			var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 			if (parentElement) {
-				parentElement.setAttribute(selectorAttributeName, parameters.componentHash);
+				parentElement.setAttribute(selectorAttributeName, renderingInstance._hash);
 				templateString = parentElement.outerHTML;
 			}
 		}
 
+		renderingInstance._setStatus(renderingInstancesStatuses.rendered);
+
 		return {
 			templateString: templateString,
-			templateRuntime: data['_runtime']
+			templateRuntime: runtime
 		};
 	}
 
-	var eventHandlerAttributeName = 'b-on';
-
 	/**
-	 * @param {Element} element
-	 * @param {{}} parameters
+	 * @param {{}} renderingInstance
 	 * @return {Element}
 	 */
-	function attachEventHandlers(element, parameters) {
+	function bindEventHandlers(renderingInstance) {
+		var element = document.querySelector(renderingInstance.el);
+
+		if ( ! element) {
+			return;
+		}
+
 		var
-			eventHandlersAttributeSuffix = parameters.componentHash ? '-' + parameters.componentHash : '',
-			eventHandlersAttributeName = eventHandlerAttributeName + eventHandlersAttributeSuffix,
-			eventHandlersSelector = '[' + eventHandlersAttributeName + ']',
-			eventHandlers = element.querySelectorAll(eventHandlersSelector);
+			eventHandlersAttributeSuffix = renderingInstance._kind === 'component' ? '-' + renderingInstance._hash : '',
+			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + eventHandlersAttributeSuffix,
+			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
+			eventHandlers = [];
+
+		each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
+			eventHandlers.push(childrenElement);
+		});
+
+		if (element.getAttribute(eventHandlersAttributeNameWithSuffix)) {
+			eventHandlers.push(element);
+		}
 
 		each(eventHandlers, function (key, eventHandler) {
-			var events = eventHandler.getAttribute(eventHandlersAttributeName).split(';');
+			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
 
 			each(events, function (key, event) {
 				(function (eventHandler, event) {
@@ -492,13 +705,11 @@
 							methodName = methodMatches[1],
 							methodArguments = methodMatches[2];
 
-						if (typeof parameters.methods === 'undefined'
-							|| typeof parameters.methods[methodName] === 'undefined'
-						) {
+						if ( ! renderingInstance.methods || ! renderingInstance.methods[methodName]) {
 							throw new Error('Brackets: Method "' + methodName + '" is not defined.');
 						}
 
-						eventFunction = parameters.methods[methodName];
+						eventFunction = renderingInstance.methods[methodName];
 						eventArguments = [methodArguments];
 
 					} else {
@@ -506,34 +717,54 @@
 					}
 
 					eventHandler.addEventListener(eventName, function (event) {
-						var redraw = eventFunction.apply(parameters.data, [event].concat(eventArguments)) || true;
-
-						if ( ! redraw) {
-							return false;
-						}
-
-						Brackets.render(parameters);
+						eventFunction.apply(renderingInstance.data, [event].concat(eventArguments));
 					});
 				})(eventHandler, event);
 			});
 
 			if ( ! Brackets.devMode) {
-				eventHandler.removeAttribute(eventHandlersAttributeName);
+				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
 			}
 		});
 	}
 
-	var nonInitializedElementAttributeName = 'b-init';
+	function redrawInstance(instanceId) {
+		var
+			renderingInstance = getRenderingInstance(instanceId),
+			targetElement = document.querySelector(renderingInstance.el);
+		renderingInstance.beforeRender.call(renderingInstance, targetElement);
+
+		var
+			templateObject = renderToString(renderingInstance),
+			templateParentNode = new DOMParser()
+				.parseFromString(templateObject.templateString, 'text/html')
+				.querySelector(renderingInstance.el);
+
+		if (templateParentNode) {
+			templateObject.templateString = templateParentNode.innerHTML;
+		}
+
+		targetElement.innerHTML = templateObject.templateString;
+
+		each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
+			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
+
+			bindEventHandlers(componentRenderingInstance);
+
+			if (typeof componentRenderingInstance.afterRender === 'function') {
+				componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
+			}
+		});
+
+		bindEventHandlers(renderingInstance);
+		targetElement.removeAttribute(nonInitializedElementAttributeName);
+		renderingInstance.afterRender.call(renderingInstance, targetElement);
+	}
 
 	/**
 	 * @param {{}} parameters
 	 */
 	function render(parameters) {
-		parameters.data = parameters.data ? cloneObject(parameters.data) : {};
-		parameters.methods = parameters.methods || {};
-		parameters.beforeRender = parameters.beforeRender || function () {};
-		parameters.afterRender = parameters.afterRender || function () {};
-
 		var targetElements;
 
 		if (typeof parameters.el === 'string') {
@@ -554,71 +785,32 @@
 		}
 
 		each(targetElements, function (key, targetElement) {
-			var
-				hash = targetElement.getAttribute(selectorAttributeName),
-				parametersCopy = hash ? parameters : cloneObject(parameters);
-
-			if ( ! hash) {
-				hash = generateHash();
-				targetElement.setAttribute(selectorAttributeName, hash);
-				parametersCopy.el = '[' + selectorAttributeName + '="' + hash +'"]';
-				parametersCopy.hash = hash;
-			}
-
-			if ( ! parametersCopy.template) {
-				parametersCopy.template = targetElement.innerHTML;
-
-			} else if (parametersCopy.template && parametersCopy.template.match(/^#\S+/)) {
-				var templateElement = document.querySelector(parametersCopy.template);
-
-				if (templateElement) {
-					parametersCopy.template = templateElement.innerHTML;
-				}
-			}
-
-			parametersCopy.beforeRender.call(parametersCopy, targetElement);
-
-			var
-				templateObject = renderToString({
-					componentHash: parametersCopy.componentHash || null,
-					cacheKey: parametersCopy.cacheKey,
-					data: parametersCopy.data,
-					template: parametersCopy.template
-				}),
-				templateParentNode = new DOMParser()
-					.parseFromString(templateObject.templateString, 'text/html')
-					.querySelector(parametersCopy.el);
-
-			if (templateParentNode) {
-				templateObject.templateString = templateParentNode.innerHTML;
-			}
-
-			targetElement.innerHTML = templateObject.templateString;
-
-			each(templateObject.templateRuntime.renderedComponents, function (key, componentParameters) {
-				componentParameters.el = '[' + selectorAttributeName +'="' + componentParameters.componentHash + '"]';
-				componentParameters.template = components.register[componentParameters.componentName].template;
-				componentParameters.methods = components.register[componentParameters.componentName].methods;
-				componentParameters.afterRender = components.register[componentParameters.componentName].afterRender;
-				componentParameters.beforeRender = components.register[componentParameters.componentName].beforeRender;
-
-				//attachParametersDescriptors(componentParameters);
-				attachEventHandlers(targetElement, componentParameters);
-
-				if (typeof componentParameters.afterRender === 'function') {
-					componentParameters.afterRender.call(componentParameters, targetElement);
-				}
-			});
-
-			//attachParametersDescriptors(parametersCopy);
-			attachEventHandlers(targetElement, parametersCopy);
-			targetElement.removeAttribute(nonInitializedElementAttributeName);
-			parametersCopy.afterRender.call(parametersCopy, targetElement);
+			redrawInstance(createRenderingInstanceObject(parameters, targetElement).id);
 		});
+
+		return Brackets;
 	}
 
+	Brackets.templateLiteral = templateLiteral;
+
+	Brackets.addFilter = addFilter;
+	Brackets.getFilter = getFilter;
+	Brackets.getFilters = getFilters;
+
+	Brackets.addComponent = addComponent;
+	Brackets.getComponents = getComponents;
+
+	Brackets.addMacro = addMacro;
+	Brackets.getMacros = getMacros;
+
+	Brackets.getRenderingInstance = getRenderingInstance;
+	Brackets.getRenderingInstances = getRenderingInstances;
+
 	Brackets.render = render;
-	Brackets.renderToString = renderToString;
+	Brackets.renderToString = function (parameters) {
+		return renderToString(createRenderingInstanceObject(parameters));
+	};
+
 
 	if (typeof window !== 'undefined' && typeof window.Brackets === 'undefined') {
 		window.Brackets = Brackets;
