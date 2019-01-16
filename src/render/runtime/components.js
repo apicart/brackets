@@ -1,7 +1,7 @@
 import {Brackets, selectorAttributeName} from '../../shared/variables';
 import {cloneObject, each, generateHash} from '../../shared/utils';
 import {createRenderingInstanceObject} from './renderingInstances';
-import {renderToString} from "../renderToString";
+import {renderToString} from '../renderToString';
 
 
 var components = {
@@ -27,7 +27,8 @@ export function renderComponent(name, componentDataFromTemplate) {
 
 	var
 		templateObject = renderToString(componentRenderingInstance),
-		renderedComponents = [componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
+		renderedComponents =
+			[componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
 
 	this.renderedComponents = this.renderedComponents.concat(renderedComponents);
 	return templateObject.templateString;
