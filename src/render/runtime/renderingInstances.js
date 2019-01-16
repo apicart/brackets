@@ -3,7 +3,7 @@ import {selectorAttributeName} from '../../shared/variables';
 import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
 
 
-export var renderingInstances = [];
+export var renderingInstances = {};
 export var renderingInstancesStatuses = {
 	pending: 'pending',
 	processing: 'processing',
@@ -33,7 +33,7 @@ export function getRenderingInstances(kind) {
  * @return {*}
  */
 export function getRenderingInstance(id, required) {
-	if ( !! required && ! (id in renderingInstances)) {
+	if (required !== false && ! (id in renderingInstances)) {
 		throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 	}
 
@@ -74,13 +74,14 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		throw new Error('Brackets: No template or target element provided for rendering.');
 	}
 
-	var instance = {
+	var
+		instance = {
 		afterRender: parameters.afterRender || function () {},
 		beforeRender: parameters.beforeRender || function () {},
 		cacheKey: parameters.cacheKey || null,
 		data: parameters.data ? cloneObject(parameters.data) : {},
 		el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
-		id: parameters.instanceId || hash,
+		id: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
 		methods: parameters.methods || {},
 		onStatusChange: parameters.onStatusChange || function () {},
 		template: parameters.template,
