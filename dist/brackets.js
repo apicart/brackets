@@ -347,7 +347,7 @@
 	 * @return {function|null}
 	 */
 	function getFilter(name, required) {
-		if ( !! required && ! (name in filters)) {
+		if (required !== false && ! (name in filters)) {
 			throw new Error('Brackets: Filter "' + name + '" not found.');
 		}
 
@@ -404,7 +404,7 @@
 		});
 	}
 
-	var renderingInstances = [];
+	var renderingInstances = {};
 	var renderingInstancesStatuses = {
 		pending: 'pending',
 		processing: 'processing',
@@ -434,7 +434,7 @@
 	 * @return {*}
 	 */
 	function getRenderingInstance(id, required) {
-		if ( !! required && ! (id in renderingInstances)) {
+		if (required !== false && ! (id in renderingInstances)) {
 			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 		}
 
@@ -475,13 +475,14 @@
 			throw new Error('Brackets: No template or target element provided for rendering.');
 		}
 
-		var instance = {
+		var
+			instance = {
 			afterRender: parameters.afterRender || function () {},
 			beforeRender: parameters.beforeRender || function () {},
 			cacheKey: parameters.cacheKey || null,
 			data: parameters.data ? cloneObject(parameters.data) : {},
 			el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
-			id: parameters.instanceId || hash,
+			id: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
 			methods: parameters.methods || {},
 			onStatusChange: parameters.onStatusChange || function () {},
 			template: parameters.template,
@@ -528,7 +529,7 @@
 		componentRenderingInstance._parent = this.parentInstance;
 
 		var
-			templateObject = Brackets.renderToString(componentRenderingInstance),
+			templateObject = renderToString(componentRenderingInstance),
 			renderedComponents = [componentRenderingInstance.id].concat(templateObject.templateRuntime.renderedComponents);
 
 		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
@@ -562,7 +563,7 @@
 		var componentExists = name in components.register;
 
 		if ( ! componentExists) {
-			if (required) {
+			if (required !== false) {
 				throw new Error('Brackets: Component "' + name + '" not found.');
 			}
 
@@ -732,6 +733,7 @@
 		var
 			renderingInstance = getRenderingInstance(instanceId),
 			targetElement = document.querySelector(renderingInstance.el);
+
 		renderingInstance.beforeRender.call(renderingInstance, targetElement);
 
 		var
@@ -807,6 +809,11 @@
 	Brackets.getRenderingInstances = getRenderingInstances;
 
 	Brackets.render = render;
+
+	/**
+	 * @param {{}} parameters
+	 * @return {{}}
+	 */
 	Brackets.renderToString = function (parameters) {
 		return renderToString(createRenderingInstanceObject(parameters));
 	};
