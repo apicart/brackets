@@ -1,18 +1,18 @@
-import {macros, templateLiteral} from '../shared/variables';
-import {each} from '../shared/utils';
+import {templateLiteral} from "../../shared/variables";
+import {each} from '../../shared/utils';
 import {processVariable} from './processors/procesVariable';
 import {processMacro} from './processors/processMacro';
+import {getMacros} from "../runtime/macros";
+
 
 var variableMatchRegularExpression = /^\$/;
 
 /**
  * @param {{}} tokens
- * @param {{}} data
+ * @param {{}} templateParametersNames
  * @return {Function}
  */
-export function compileTemplate(tokens, data) {
-	data = data || {};
-
+export function compileTemplate(tokens, templateParametersNames) {
 	var
 		macroTokenArray,
 		macroTokenFirstPart,
@@ -28,7 +28,7 @@ export function compileTemplate(tokens, data) {
 			if (macroTokenFirstPart.match(variableMatchRegularExpression)) {
 				templateString += processVariable(macroTokenArray);
 
-			} else if (macroTokenFirstPart in macros) {
+			} else if (macroTokenFirstPart in getMacros()) {
 				templateString += processMacro(macroTokenArray);
 
 			} else {
@@ -39,5 +39,5 @@ export function compileTemplate(tokens, data) {
 
 	templateString += 'return _template;';
 
-	return new Function(Object.keys(data).join(','), templateString);
+	return new Function(templateParametersNames.join(','), templateString);
 }
