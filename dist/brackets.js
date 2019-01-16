@@ -530,7 +530,8 @@
 
 		var
 			templateObject = renderToString(componentRenderingInstance),
-			renderedComponents = [componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
+			renderedComponents =
+				[componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
 
 		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
 		return templateObject.templateString;
