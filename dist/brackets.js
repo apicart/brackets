@@ -1,5 +1,5 @@
 /** 
- * brackets.js v1.0.0 
+ * brackets.js v1.0.0-alpha1 
  * (c) 2018-2019 Vladimír Macháček
  *  Released under the MIT License.
  */
