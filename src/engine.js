@@ -27,6 +27,7 @@ Brackets.getRenderingInstance = getRenderingInstance;
 Brackets.getRenderingInstances = getRenderingInstances;
 
 Brackets.render = render;
+
 /**
  * @param {{}} parameters
  * @return {{}}
