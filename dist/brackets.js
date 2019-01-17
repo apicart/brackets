@@ -240,7 +240,7 @@
 		if (tokenFullMatchArray.length) {
 			each(tokenFullMatchArray, function (key, filter) {
 				filterArray = filter.split(':');
-				filterName = filterArray[0];
+				filterName = filterArray[0] || null;
 
 				if (filterName === 'noescape') {
 					applyEscapeFilter = false;
@@ -250,15 +250,11 @@
 				filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 				filterParameters.unshift(variable);
 
-				variable = '_runtime.getFilter(\'' + filterName + '\')(' + filterParameters.join(',') +')';
+				variable = '_templateAdd(' + filterParameters.join(',') +', \'' + filterName + '\')';
 			});
 		}
 
-		if (applyEscapeFilter) {
-			variable = '_runtime.getFilter(\'escape\')(' + variable + ')';
-		}
-
-		return '_template += ' + variable + ';';
+		return '_template += _templateAdd(' + variable + ', ' + applyEscapeFilter +');';
 	}
 
 	/**
@@ -298,10 +294,10 @@
 		var
 			macroTokenArray,
 			macroTokenFirstPart,
-			templateString = 'var _template = \'\';';
+			templateString = 'var _template = \'\';' + _templateAdd.toString();
 
 		each(tokens.text, function (tokenKey, tokenText) {
-			templateString += '_template += ' + templateLiteral + tokenText + templateLiteral + ';';
+			templateString += '_template += _templateAdd(' + templateLiteral + tokenText + templateLiteral + ');';
 
 			if (tokenKey in tokens.macros) {
 				macroTokenArray = tokens.macros[tokenKey];
@@ -322,6 +318,26 @@
 		templateString += 'return _template;';
 
 		return new Function(templateParametersNames.join(','), templateString);
+	}
+
+
+	/**
+	 * _runtime is provided in the template
+	 * @param {*} data
+	 * @param {string} filter
+	 * @return {*}
+	 * @private
+	 */
+	function _templateAdd(data, filter) {
+		if (typeof data === 'undefined') {
+			return '';
+		}
+
+		filter = filter === false ? null : filter;
+		filter = filter === true ? 'escape' : filter;
+
+		/* eslint-disable-next-line no-undef */
+		return filter ? _runtime.getFilter(filter)(data) : data;
 	}
 
 	var filters = {};
@@ -384,9 +400,11 @@
 	 * @param {{}} renderingInstance
 	 */
 	function bindPropertyDescriptors(renderingInstance) {
-		renderingInstance._data = renderingInstance._data ? cloneObject(renderingInstance.data) : {};
-
 		each(renderingInstance.data, function (propertyKey, propertyValue) {
+			if (propertyKey in renderingInstance._data) {
+				return;
+			}
+
 			renderingInstance._data[propertyKey] = propertyValue;
 
 			Object.defineProperty(renderingInstance.data, propertyKey, {
@@ -411,15 +429,15 @@
 		rendered: 'rendered'
 	};
 
-	function getRenderingInstances(kind) {
-		if ( ! kind) {
+	function getRenderingInstances(type) {
+		if ( ! type) {
 			return renderingInstances;
 		}
 
 		var selectedInstances = {};
 
 		each(renderingInstances, function (id, instance) {
-			if (instance._kind === kind) {
+			if (instance._type === type) {
 				selectedInstances[id] = instance;
 			}
 		});
@@ -449,31 +467,6 @@
 	 */
 	function createRenderingInstanceObject(parameters, targetElement) {
 		parameters = cloneObject(parameters);
-		var hash = targetElement ? targetElement.getAttribute(selectorAttributeName) : null;
-
-		if ( ! hash) {
-			hash = generateHash();
-
-			if (targetElement) {
-				targetElement.setAttribute(selectorAttributeName, hash);
-			}
-		}
-
-		parameters.el = '[' + selectorAttributeName + '="' + hash +'"]';
-
-		if ( ! parameters.template && targetElement) {
-			parameters.template = targetElement.innerHTML;
-
-		} else if (parameters.template && parameters.template.match(/^#\S+/)) {
-			var templateElement = document.querySelector(parameters.template);
-
-			if (templateElement) {
-				parameters.template = templateElement.innerHTML;
-			}
-
-		} else if ( ! parameters.template && ! targetElement) {
-			throw new Error('Brackets: No template or target element provided for rendering.');
-		}
 
 		var
 			instance = {
@@ -481,20 +474,51 @@
 				beforeRender: parameters.beforeRender || function () {},
 				cacheKey: parameters.cacheKey || null,
 				data: parameters.data ? cloneObject(parameters.data) : {},
-				el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
-				instanceId: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
 				methods: parameters.methods || {},
 				onStatusChange: parameters.onStatusChange || function () {},
 				template: parameters.template,
-				_hash: hash,
-				_kind: parameters._kind || 'view',
+				addData: function (property, value) {
+					this.data[property] = value;
+					bindPropertyDescriptors(this);
+				},
+				_data: {},
+				_hash: generateHash(),
+				_type: parameters._type || 'view',
 				_parent: null,
+				_status: renderingInstancesStatuses.pending,
 				_setStatus: function (status) {
 					this._status = status;
 					this.onStatusChange.call(this, status);
 				},
-				_status: renderingInstancesStatuses.pending
+				set instanceId(id) {
+					this._instanceId = id;
+				},
+				get instanceId() {
+					return this._instanceId ? this._instanceId + '-' + this._hash : this._hash;
+				},
+				get el() {
+					return '[' + selectorAttributeName + '="' + this.instanceId +'"]';
+				}
 			};
+
+		instance.instanceId = parameters.instanceId || null;
+		if (targetElement && ! targetElement.getAttribute(selectorAttributeName)) {
+			targetElement.setAttribute(selectorAttributeName, instance.instanceId);
+		}
+
+		if ( ! parameters.template && targetElement) {
+			instance.template = targetElement.innerHTML;
+
+		} else if (parameters.template && parameters.template.match(/^#\S+/)) {
+			var templateElement = document.querySelector(parameters.template);
+
+			if (templateElement) {
+				instance.template = templateElement.innerHTML;
+			}
+
+		} else if ( ! parameters.template && ! targetElement) {
+			throw new Error('Brackets: No template or target element provided for rendering.');
+		}
 
 		bindPropertyDescriptors(instance);
 
@@ -548,7 +572,7 @@
 			throw new Error('Brackets: Component "' + name +'" is already defined.');
 		}
 
-		parameters._kind = 'component';
+		parameters._type = 'component';
 		components.register[name] = parameters;
 
 		return Brackets;
@@ -571,14 +595,7 @@
 			return null;
 		}
 
-		var
-			componentParameters = cloneObject(components.register[name]),
-			renderingInstanceClone = createRenderingInstanceObject(componentParameters),
-			hash = generateHash();
-
-		renderingInstanceClone._hash = hash;
-		renderingInstanceClone.el ='[' + selectorAttributeName + '="' + hash + '"]';
-		return renderingInstanceClone;
+		return createRenderingInstanceObject(cloneObject(components.register[name]));
 	}
 
 
@@ -638,7 +655,7 @@
 
 		var templateString = compiledTemplate.apply(null, templateArguments);
 
-		if (renderingInstance._kind === 'component') {
+		if (renderingInstance._type === 'component') {
 			templateString = templateString.replace(
 				new RegExp(eventHandlersAttributeName + '=', 'g'),
 				eventHandlersAttributeName + '-' + renderingInstance._hash + '='
@@ -647,7 +664,7 @@
 			var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 			if (parentElement) {
-				parentElement.setAttribute(selectorAttributeName, renderingInstance._hash);
+				parentElement.setAttribute(selectorAttributeName, renderingInstance.instanceId);
 				templateString = parentElement.outerHTML;
 			}
 		}
@@ -672,7 +689,7 @@
 		}
 
 		var
-			eventHandlersAttributeSuffix = renderingInstance._kind === 'component' ? '-' + renderingInstance._hash : '',
+			eventHandlersAttributeSuffix = renderingInstance._type === 'component' ? '-' + renderingInstance._hash : '',
 			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + eventHandlersAttributeSuffix,
 			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 			eventHandlers = [];
