@@ -1,8 +1,15 @@
 <h1 align="center">
 	<img src="https://github.com/apicart/brackets/blob/master/logo.png">
 	<br>
-	<a href="https://travis-ci.org/apicart/brackets" target="blank" rel="noopener"><img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master"></a>
-	<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
+	<a href="https://travis-ci.org/apicart/brackets" target="blank" rel="noopener">
+		<img alt="" src="https://travis-ci.org/apicart/brackets.svg?branch=master">
+	</a>
+	<a href="https://www.npmjs.com/package/@apicart/brackets" target="blank" rel="noopener">
+		<img alt="" src="https://img.shields.io/npm/v/@apicart/brackets.svg">
+	</a>
+	<a href="https://github.com/apicart/brackets/blob/master/LICENSE" target="blank" rel="noopener">
+		<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
+	</a>
 </h1>
 
 - Small, flexible, easy to use, component-oriented javascript template engine.
@@ -29,12 +36,16 @@
 ## Installation
 Brackets are under development and therefore they are not yet available on npm. You can use the cdn link.
 
-**Master version from Github**
+**CDN**
 ```html
+<!-- Master version from Github -->
 <script src="https://cdn.jsdelivr.net/gh/apicart/brackets/dist/brackets.min.js"></script>
+
+<!-- v1.0.0-alpha1 from jsdelivr.net -->
+<script src="https://cdn.jsdelivr.net/npm/@apicart/brackets@1.0.0-alpha1/dist/brackets.min.js" integrity="sha256-TxTeKLp4t4vZVi131XgcBwX9LJfTg1N9zlMxPE2XE0o=" crossorigin="anonymous"></script>
 ```
 
-**Other**
+**Npm & Yarn**
 
 ```
 npm install @apicart/brackets
