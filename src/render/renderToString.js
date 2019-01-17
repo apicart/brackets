@@ -68,7 +68,7 @@ export function renderToString(renderingInstance) {
 		var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 		if (parentElement) {
-			parentElement.setAttribute(selectorAttributeName, renderingInstance._hash);
+			parentElement.setAttribute(selectorAttributeName, renderingInstance.instanceId);
 			templateString = parentElement.outerHTML;
 		}
 	}

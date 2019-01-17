@@ -48,31 +48,6 @@ export function getRenderingInstance(id, required) {
  */
 export function createRenderingInstanceObject(parameters, targetElement) {
 	parameters = cloneObject(parameters);
-	var hash = targetElement ? targetElement.getAttribute(selectorAttributeName) : null;
-
-	if ( ! hash) {
-		hash = generateHash();
-
-		if (targetElement) {
-			targetElement.setAttribute(selectorAttributeName, hash);
-		}
-	}
-
-	parameters.el = '[' + selectorAttributeName + '="' + hash +'"]';
-
-	if ( ! parameters.template && targetElement) {
-		parameters.template = targetElement.innerHTML;
-
-	} else if (parameters.template && parameters.template.match(/^#\S+/)) {
-		var templateElement = document.querySelector(parameters.template);
-
-		if (templateElement) {
-			parameters.template = templateElement.innerHTML;
-		}
-
-	} else if ( ! parameters.template && ! targetElement) {
-		throw new Error('Brackets: No template or target element provided for rendering.');
-	}
 
 	var
 		instance = {
@@ -80,20 +55,46 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			beforeRender: parameters.beforeRender || function () {},
 			cacheKey: parameters.cacheKey || null,
 			data: parameters.data ? cloneObject(parameters.data) : {},
-			el: parameters.el ? parameters.el : '[' + selectorAttributeName + '="' + hash +'"]',
-			instanceId: parameters.instanceId ? parameters.instanceId + '-' + hash : hash,
 			methods: parameters.methods || {},
 			onStatusChange: parameters.onStatusChange || function () {},
 			template: parameters.template,
-			_hash: hash,
+			_hash: generateHash(),
 			_kind: parameters._kind || 'view',
 			_parent: null,
 			_setStatus: function (status) {
 				this._status = status;
 				this.onStatusChange.call(this, status);
 			},
-			_status: renderingInstancesStatuses.pending
+			_status: renderingInstancesStatuses.pending,
+			set instanceId(id) {
+				this._instanceId = id;
+			},
+			get instanceId() {
+				return this._instanceId ? this._instanceId + '-' + this._hash : this._hash;
+			},
+			get el() {
+				return '[' + selectorAttributeName + '="' + this.instanceId +'"]'
+			},
 		};
+
+	instance.instanceId = parameters.instanceId || null;
+	if (targetElement && ! targetElement.getAttribute(selectorAttributeName)) {
+		targetElement.setAttribute(selectorAttributeName, instance.instanceId);
+	}
+
+	if ( ! parameters.template && targetElement) {
+		instance.template = targetElement.innerHTML;
+
+	} else if (parameters.template && parameters.template.match(/^#\S+/)) {
+		var templateElement = document.querySelector(parameters.template);
+
+		if (templateElement) {
+			instance.template = templateElement.innerHTML;
+		}
+
+	} else if ( ! parameters.template && ! targetElement) {
+		throw new Error('Brackets: No template or target element provided for rendering.');
+	}
 
 	bindPropertyDescriptors(instance);
 
