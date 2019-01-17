@@ -52,11 +52,12 @@ export function compileTemplate(tokens, templateParametersNames) {
  */
 function _templateAdd(data, filter) {
 	if (typeof data === 'undefined') {
-		return ''
+		return '';
 	}
 
 	filter = filter === false ? null : filter;
 	filter = filter === true ? 'escape' : filter;
 
+	/* eslint-disable-next-line no-undef */
 	return filter ? _runtime.getFilter(filter)(data) : data;
 }
