@@ -16,14 +16,14 @@
 - [Templates](https://github.com/apicart/brackets/blob/master/readme.md#templates)
 - [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
 - [Event Handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
-- [Macros](https://github.com/apicart/brackets/blob/master/readme.md#macros)
 - [Filters](https://github.com/apicart/brackets/blob/master/readme.md#filters)
+- [Macros](https://github.com/apicart/brackets/blob/master/readme.md#macros)
 - [Components](https://github.com/apicart/brackets/blob/master/readme.md#components)
 - [Complete Components Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-components-configuration)
 - [Complete Rendering Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-rendering-configuration)
 - [Configuration Reserved Keywords](https://github.com/apicart/brackets/blob/master/readme.md#configuration-reserved-keywords)
 - [Rendering Instances](https://github.com/apicart/brackets/blob/master/readme.md#rendering-instances)
-
+- [Security](https://github.com/apicart/brackets/blob/master/readme.md#security)
 
 
 ## Installation
@@ -168,6 +168,56 @@ Brackets.render({
 </script>
 ```
 
+## Filters
+Filters are used for interaction with values from variables.
+As an example, we will create a filter called `firstToUpper` and it will convert the first character to a capital letter.
+
+```html
+<div id="app">
+	{{$text|firstToUpper}}
+</div>
+<script>
+Brackets
+	.addFilter('firstToUpper', function (text) {
+		return text.charAt(0).toUpperCase() + text.slice(1);
+	})
+	.render({
+		el: '#app',
+		data: {
+			text: 'text'
+		}
+	});
+</script>
+```
+```
+Text
+```
+
+Filters can receive multiple arguments. The arguments must be added after the colon and must be separated by a comma.
+The example below returns the default *first* text and attaches the text 'second' and 'third'.
+
+```html
+<div id="app">
+	{{$text|appendWords: 'second', 'third'}}
+</div>
+<script>
+Brackets
+	.addFilter('appendWords', function (text, firstParameter, secondParameter) {
+		return text + ', ' + firstParameter + ', ' + secondParameter
+	})
+	.render({
+		el: '#app',
+		data: {
+			text: 'First'
+		}
+	});
+</script>
+```
+
+```
+First, second, third
+```
+
 ## Macros
 There are the following macros defined by default.
 
@@ -284,58 +334,55 @@ Brackets
 Number: 1
 ```
 
-## Filters
-Filters are used for interaction with values from variables.
-As an example, we will create a filter called `firstToUpper` and it will convert the first character to a capital letter.
+It is also possible to use `_templateAdd` function. This function automatically applies the escaping filter.
 
 ```html
 <div id="app">
-	{{$text|firstToUpper}}
+	{{dumpNumber number}}
+</div>
+<script>
+var sep = Brackets.templateLiteral;
+Brackets
+	.addMacro('dumpNumber', function () {
+		return '_template += _templateAdd(' + sep + 'Number: ' +  sep + ' + number);';
+	})
+	.render({
+		el: '#app',
+		data: {
+			number: 1
+		}
+	});
+</script>
+```
+
+The `_templateAdd` function also allows you to use your already defined filters. Just add it as a second parameter.
+```
+<div id="app">
+	{{dumpText text|firstToUpper}}
 </div>
 <script>
 Brackets
 	.addFilter('firstToUpper', function (text) {
 		return text.charAt(0).toUpperCase() + text.slice(1);
 	})
-	.render({
-		el: '#app',
-		data: {
-			text: 'text'
-		}
-	});
-</script>
-```
-
-Filters can receive multiple arguments. The arguments must be added after the colon and must be separated by a comma.
-The example below returns the default *first* text and attaches the text 'second' and 'third'.
-
-```html
-<div id="app">
-	{{$text|appendWords: 'second', 'third'}}
-</div>
-<script>
-Brackets
-	.addFilter('appendWords', function (text, firstParameter, secondParameter) {
-		return text + ', ' + firstParameter + ', ' + secondParameter
+	.addMacro('dumpText', function () {
+		return '_template += _templateAdd(text, \'firstToUpper\');';
 	})
 	.render({
 		el: '#app',
 		data: {
-			text: 'First'
+			text: 'text!'
 		}
 	});
 </script>
-```
-
-```
-First, second, third
 ```
 
 ## Complete Rendering Configuration
 ```javascript
 Brackets.render({
-	afterRender: <function>,
-	beforeRender: <function>,
+	afterRender: <function|null>,
+	beforeRender: <function|null>,
+	addData: <function|null>,
 	cacheKey: <string|null>,
 	data: <object|null>,
 	el: <string|Element|NodeList>,
@@ -406,8 +453,9 @@ Brackets
 ### Complete Components Configuration
 ```javascript
 Brackets.render({
-	afterRender: <function>,
-	beforeRender: <function>,
+	afterRender: <function|null>,
+	beforeRender: <function|null>,
+	addData: <function|null>
 	cacheKey: <string|null>,
 	data: <object|null>,
 	instanceId <string|null>: ,
@@ -418,7 +466,7 @@ Brackets.render({
 ```
 
 ## Configuration Reserved Keywords
-This keywords you must not use in the configuration object `_hash, _kind, _parent, _setStatus, _status`.
+This keywords you must not use in the configuration object `_data, _instanceId, _hash, _type, _parent, _setStatus, _status`.
 
 ## Rendering Instances
 Rendering instances are interactive objects that were used during the rendering process of each template or component. 
@@ -429,6 +477,7 @@ The following example shows how to work with instances.
 Brackets.getRenderingInstances() // Returns an object containing all rendering instances
 var myInstance = Brackets.getRenderingInstance('my-instance-1234') // Returns the selected instance
 myInstance.data.number += 2 // Changing data structure in the renderingInstance will trigger the selected instance redrawal
+myInstance.addData('key', 'value'); // This will add new data by key into the data object
 ```
 
 Instances have also some statuses. The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
@@ -444,4 +493,11 @@ Brackets.render({
 	}
 	...
 })
+```
+
+## Security
+Every variable passed into the template is autoescaped! If you want to disable the autoescaping for your variable add the `noescape` filter.
+
+```javascript
+{{$variable|noescape}}
 ```
