@@ -58,14 +58,19 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			methods: parameters.methods || {},
 			onStatusChange: parameters.onStatusChange || function () {},
 			template: parameters.template,
+			addData: function (property, value) {
+				this.data[property] = value;
+				bindPropertyDescriptors(this);
+			},
+			_data: {},
 			_hash: generateHash(),
 			_type: parameters._type || 'view',
 			_parent: null,
+			_status: renderingInstancesStatuses.pending,
 			_setStatus: function (status) {
 				this._status = status;
 				this.onStatusChange.call(this, status);
 			},
-			_status: renderingInstancesStatuses.pending,
 			set instanceId(id) {
 				this._instanceId = id;
 			},
@@ -73,8 +78,8 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				return this._instanceId ? this._instanceId + '-' + this._hash : this._hash;
 			},
 			get el() {
-				return '[' + selectorAttributeName + '="' + this.instanceId +'"]'
-			},
+				return '[' + selectorAttributeName + '="' + this.instanceId +'"]';
+			}
 		};
 
 	instance.instanceId = parameters.instanceId || null;
