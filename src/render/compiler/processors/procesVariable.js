@@ -20,7 +20,7 @@ export function processVariable(tokenMatchArray) {
 	if (tokenFullMatchArray.length) {
 		each(tokenFullMatchArray, function (key, filter) {
 			filterArray = filter.split(':');
-			filterName = filterArray[0];
+			filterName = filterArray[0] || null;
 
 			if (filterName === 'noescape') {
 				applyEscapeFilter = false;
@@ -30,13 +30,9 @@ export function processVariable(tokenMatchArray) {
 			filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 			filterParameters.unshift(variable);
 
-			variable = '_runtime.getFilter(\'' + filterName + '\')(' + filterParameters.join(',') +')';
+			variable = '_templateAdd(' + filterParameters.join(',') +', \'' + filterName + '\')';
 		});
 	}
 
-	if (applyEscapeFilter) {
-		variable = '_runtime.getFilter(\'escape\')(' + variable + ')';
-	}
-
-	return '_template += ' + variable + ';';
+	return '_template += _templateAdd(' + variable + ', ' + applyEscapeFilter +');';
 }
