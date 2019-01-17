@@ -356,7 +356,7 @@ Brackets
 ```
 
 The `_templateAdd` function also allows you to use your already defined filters. Just add it as a second parameter.
-```
+```html
 <div id="app">
 	{{dumpText text|firstToUpper}}
 </div>
