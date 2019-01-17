@@ -1,4 +1,4 @@
-import {cloneObject, each} from '../../shared/utils';
+import {each} from '../../shared/utils';
 import {redrawInstance} from '../redrawler';
 import {renderingInstancesStatuses} from '../runtime/renderingInstances';
 
