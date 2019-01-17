@@ -7,9 +7,11 @@ import {renderingInstancesStatuses} from '../runtime/renderingInstances';
  * @param {{}} renderingInstance
  */
 export function bindPropertyDescriptors(renderingInstance) {
-	renderingInstance._data = renderingInstance._data ? cloneObject(renderingInstance.data) : {};
-
 	each(renderingInstance.data, function (propertyKey, propertyValue) {
+		if (propertyKey in renderingInstance._data) {
+			return;
+		}
+
 		renderingInstance._data[propertyKey] = propertyValue;
 
 		Object.defineProperty(renderingInstance.data, propertyKey, {
