@@ -10,15 +10,15 @@ export var renderingInstancesStatuses = {
 	rendered: 'rendered'
 };
 
-export function getRenderingInstances(kind) {
-	if ( ! kind) {
+export function getRenderingInstances(type) {
+	if ( ! type) {
 		return renderingInstances;
 	}
 
 	var selectedInstances = {};
 
 	each(renderingInstances, function (id, instance) {
-		if (instance._kind === kind) {
+		if (instance._type === type) {
 			selectedInstances[id] = instance;
 		}
 	});
@@ -59,7 +59,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			onStatusChange: parameters.onStatusChange || function () {},
 			template: parameters.template,
 			_hash: generateHash(),
-			_kind: parameters._kind || 'view',
+			_type: parameters._type || 'view',
 			_parent: null,
 			_setStatus: function (status) {
 				this._status = status;

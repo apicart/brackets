@@ -14,7 +14,7 @@ export function bindEventHandlers(renderingInstance) {
 	}
 
 	var
-		eventHandlersAttributeSuffix = renderingInstance._kind === 'component' ? '-' + renderingInstance._hash : '',
+		eventHandlersAttributeSuffix = renderingInstance._type === 'component' ? '-' + renderingInstance._hash : '',
 		eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + eventHandlersAttributeSuffix,
 		eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 		eventHandlers = [];

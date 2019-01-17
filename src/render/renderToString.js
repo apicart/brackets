@@ -59,7 +59,7 @@ export function renderToString(renderingInstance) {
 
 	var templateString = compiledTemplate.apply(null, templateArguments);
 
-	if (renderingInstance._kind === 'component') {
+	if (renderingInstance._type === 'component') {
 		templateString = templateString.replace(
 			new RegExp(eventHandlersAttributeName + '=', 'g'),
 			eventHandlersAttributeName + '-' + renderingInstance._hash + '='

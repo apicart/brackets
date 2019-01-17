@@ -45,7 +45,7 @@ export function addComponent(name, parameters) {
 		throw new Error('Brackets: Component "' + name +'" is already defined.');
 	}
 
-	parameters._kind = 'component';
+	parameters._type = 'component';
 	components.register[name] = parameters;
 
 	return Brackets;
