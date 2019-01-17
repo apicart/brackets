@@ -55,9 +55,13 @@ function _templateAdd(data, filter) {
 		return '';
 	}
 
+	if ( ! Array.isArray(data)) {
+		data = [data];
+	}
+
 	filter = filter === false ? null : filter;
 	filter = filter === true ? 'escape' : filter;
 
 	/* eslint-disable-next-line no-undef */
-	return filter ? _runtime.getFilter(filter)(data) : data;
+	return filter ? _runtime.getFilter(filter).apply(null, data) : data;
 }
