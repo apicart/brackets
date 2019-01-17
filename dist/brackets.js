@@ -250,11 +250,15 @@
 				filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 				filterParameters.unshift(variable);
 
-				variable = '_templateAdd(' + filterParameters.join(',') +', \'' + filterName + '\')';
+				variable = '_templateAdd([' + filterParameters + '], \'' + filterName + '\')';
 			});
 		}
 
-		return '_template += _templateAdd(' + variable + ', ' + applyEscapeFilter +');';
+		if (applyEscapeFilter) {
+			variable = '_templateAdd(' + variable + ');';
+		}
+
+		return '_template += ' + variable;
 	}
 
 	/**
@@ -333,11 +337,15 @@
 			return '';
 		}
 
+		if ( ! Array.isArray(data)) {
+			data = [data];
+		}
+
 		filter = filter === false ? null : filter;
 		filter = filter === true ? 'escape' : filter;
 
 		/* eslint-disable-next-line no-undef */
-		return filter ? _runtime.getFilter(filter)(data) : data;
+		return filter ? _runtime.getFilter(filter).apply(null, data) : data;
 	}
 
 	var filters = {};
