@@ -30,9 +30,13 @@ export function processVariable(tokenMatchArray) {
 			filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
 			filterParameters.unshift(variable);
 
-			variable = '_templateAdd(' + filterParameters.join(',') +', \'' + filterName + '\')';
+			variable = '_templateAdd([' + filterParameters + '], \'' + filterName + '\')';
 		});
 	}
 
-	return '_template += _templateAdd(' + variable + ', ' + applyEscapeFilter +');';
+	if (applyEscapeFilter) {
+		variable = '_templateAdd(' + variable + ');';
+	}
+
+	return '_template += ' + variable;
 }
