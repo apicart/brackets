@@ -1,5 +1,5 @@
-import {Brackets, selectorAttributeName} from '../../shared/variables';
-import {cloneObject, each, generateHash} from '../../shared/utils';
+import {Brackets} from '../../shared/variables';
+import {cloneObject, each} from '../../shared/utils';
 import {createRenderingInstanceObject} from './renderingInstances';
 import {renderToString} from '../renderToString';
 
@@ -68,14 +68,7 @@ export function getComponent(name, required) {
 		return null;
 	}
 
-	var
-		componentParameters = cloneObject(components.register[name]),
-		renderingInstanceClone = createRenderingInstanceObject(componentParameters),
-		hash = generateHash();
-
-	renderingInstanceClone._hash = hash;
-	renderingInstanceClone.el ='[' + selectorAttributeName + '="' + hash + '"]';
-	return renderingInstanceClone;
+	return createRenderingInstanceObject(cloneObject(components.register[name]));
 }
 
 
