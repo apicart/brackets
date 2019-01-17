@@ -29,8 +29,17 @@
 ## Installation
 Brackets are under development and therefore they are not yet available on npm. You can use the cdn link.
 
+**Master version from Github**
 ```html
 <script src="https://cdn.jsdelivr.net/gh/apicart/brackets/dist/brackets.min.js"></script>
+```
+
+**Other**
+
+```
+npm install @apicart/brackets
+
+yarn add @apicart/brackets
 ```
 
 ## Getting Started
