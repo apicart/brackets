@@ -16,10 +16,10 @@ export function compileTemplate(tokens, templateParametersNames) {
 	var
 		macroTokenArray,
 		macroTokenFirstPart,
-		templateString = 'var _template = \'\';';
+		templateString = 'var _template = \'\';' + _templateAdd.toString();
 
 	each(tokens.text, function (tokenKey, tokenText) {
-		templateString += '_template += ' + templateLiteral + tokenText + templateLiteral + ';';
+		templateString += '_template += _templateAdd(' + templateLiteral + tokenText + templateLiteral + ');';
 
 		if (tokenKey in tokens.macros) {
 			macroTokenArray = tokens.macros[tokenKey];
@@ -40,4 +40,23 @@ export function compileTemplate(tokens, templateParametersNames) {
 	templateString += 'return _template;';
 
 	return new Function(templateParametersNames.join(','), templateString);
+}
+
+
+/**
+ * _runtime is provided in the template
+ * @param {*} data
+ * @param {string} filter
+ * @return {*}
+ * @private
+ */
+function _templateAdd(data, filter) {
+	if (typeof data === 'undefined') {
+		return ''
+	}
+
+	filter = filter === false ? null : filter;
+	filter = filter === true ? 'escape' : filter;
+
+	return filter ? _runtime.getFilter(filter)(data) : data;
 }
