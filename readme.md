@@ -7,6 +7,13 @@
 	<a href="https://www.npmjs.com/package/@apicart/brackets" target="blank" rel="noopener">
 		<img alt="" src="https://img.shields.io/npm/v/@apicart/brackets.svg">
 	</a>
+	<!--
+	<a href="https://www.npmjs.com/package/@apicart/brackets" target="blank" rel="noopener">
+		<img alt="" src="https://img.shields.io/npm/dt/@apicart/brackets.svg">
+	</a>
+	<a href="https://www.jsdelivr.com/package/npm/@apicart/brackets" target="blank" rel="noopener">
+		<img src="https://data.jsdelivr.com/v1/package/npm/@apicart/brackets/badge" alt="">
+	</a>-->
 	<a href="https://github.com/apicart/brackets/blob/master/LICENSE" target="blank" rel="noopener">
 		<img alt="" src="https://img.shields.io/github/license/apicart/brackets.svg">
 	</a>
