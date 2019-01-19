@@ -2,9 +2,9 @@
   "name": "@apicart/brackets",
   "version": "1.0.0-alpha1",
   "description": "Small, flexible, easy to use, component-oriented javascript template engine.",
-  "main": "dist/braces.min.js",
-  "unpkg": "dist/braces.min.js",
-  "jsdelivr": "dist/braces.min.js",
+  "main": "dist/brackets.min.js",
+  "unpkg": "dist/brackets.min.js",
+  "jsdelivr": "dist/brackets.min.js",
   "files": [
     "src",
     "dist/*.js"
