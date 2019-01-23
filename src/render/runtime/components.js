@@ -19,7 +19,7 @@ export function renderComponent(name, componentDataFromTemplate) {
 	var componentRenderingInstance = getComponent(name);
 	if (componentDataFromTemplate) {
 		each(componentDataFromTemplate, function (key, value) {
-			componentRenderingInstance.data[key] = value;
+			componentRenderingInstance.addData(key, value);
 		});
 	}
 
