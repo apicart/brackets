@@ -10,6 +10,10 @@ export function redrawInstance(instanceId) {
 		renderingInstance = getRenderingInstance(instanceId),
 		targetElement = document.querySelector(renderingInstance.el);
 
+	if ( ! targetElement) {
+		return;
+	}
+
 	renderingInstance.beforeRender.call(renderingInstance, targetElement);
 
 	var
