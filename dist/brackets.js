@@ -476,6 +476,10 @@
 	function createRenderingInstanceObject(parameters, targetElement) {
 		parameters = cloneObject(parameters);
 
+		if (typeof parameters.template === 'function') {
+			parameters.template = parameters.template.call(parameters);
+		}
+
 		var
 			instance = {
 				afterRender: parameters.afterRender || function () {},
@@ -759,6 +763,10 @@
 		var
 			renderingInstance = getRenderingInstance(instanceId),
 			targetElement = document.querySelector(renderingInstance.el);
+
+		if ( ! targetElement) {
+			return;
+		}
 
 		renderingInstance.beforeRender.call(renderingInstance, targetElement);
 
