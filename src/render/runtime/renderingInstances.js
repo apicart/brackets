@@ -49,6 +49,10 @@ export function getRenderingInstance(id, required) {
 export function createRenderingInstanceObject(parameters, targetElement) {
 	parameters = cloneObject(parameters);
 
+	if (typeof parameters.template === 'function') {
+		parameters.template = parameters.template.call(parameters);
+	}
+
 	var
 		instance = {
 			afterRender: parameters.afterRender || function () {},
