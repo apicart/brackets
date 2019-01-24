@@ -136,6 +136,25 @@ Brackets.render({
 </script>
 ```
 
+In case you need some condition for providing a correct template (for example for A/B testing) you can use a function that returns the right template based on given conditions. This function is called only once and can return a template string or a selector as in examples above. You should not change any parameters or data inside this function, because the code can become unclear.
+
+```html
+<div id="app"></div>
+<script>
+Brackets.render({
+	el: '#app',
+	cacheKey: 'test',
+	data: {
+		version: 'a',
+		text: "I ❤️ Brackets!"
+	},
+	template: function () {
+		return this.version === 'a' ? '#templateA' : '#templateB';
+	}
+});
+</script>
+```
+
 ## Events
 During the whole rendering process, there are triggered two events. 
 - Before render (beforeRender) - this event is triggered before the whole rendering process starts
