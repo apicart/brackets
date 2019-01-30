@@ -140,6 +140,8 @@ In case you need some condition for providing a correct template (for example fo
 
 ```html
 <div id="app"></div>
+<template id="templateA">A</template>
+<template id="templateB">B</template>
 <script>
 Brackets.render({
 	el: '#app',
