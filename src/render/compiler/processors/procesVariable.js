@@ -38,5 +38,5 @@ export function processVariable(tokenMatchArray) {
 		variable = '_templateAdd(' + variable + ');';
 	}
 
-	return '_template += ' + variable;
+	return '_template += ' + variable + ';';
 }
