@@ -58,8 +58,24 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 	var
 		instance = {
-			afterRender: parameters.afterRender || function () {},
-			beforeRender: parameters.beforeRender || function () {},
+			afterRender: function (targetElement) {
+				if ( ! parameters.afterRender) {
+					return;
+				}
+
+				this._redrawingEnabled = false;
+				parameters.afterRender.call(this, targetElement);
+				this._redrawingEnabled = true
+			},
+			beforeRender: function (targetElement) {
+				if ( ! parameters.beforeRender) {
+					return;
+				}
+
+				this._redrawingEnabled = false;
+				parameters.beforeRender.call(this, targetElement);
+				this._redrawingEnabled = true;
+			},
 			cacheKey: parameters.cacheKey || null,
 			data: parameters.data ? cloneObject(parameters.data) : {},
 			methods: parameters.methods || {},
@@ -73,8 +89,13 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			_hash: generateHash(),
 			_type: parameters._type || 'view',
 			_parent: null,
+			_redrawingEnabled: true,
 			_status: renderingInstancesStatuses.pending,
 			_setStatus: function (status) {
+				if (this._status = status) {
+					return;
+				}
+
 				this._status = status;
 				this.onStatusChange.call(this, status);
 			},
