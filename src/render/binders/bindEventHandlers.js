@@ -1,5 +1,6 @@
 import {Brackets, eventHandlersAttributeName} from '../../shared/variables';
 import {each} from '../../shared/utils';
+import {renderingInstancesStatuses} from "../runtime/renderingInstances";
 
 
 /**
@@ -7,6 +8,8 @@ import {each} from '../../shared/utils';
  * @return {Element}
  */
 export function bindEventHandlers(renderingInstance) {
+	renderingInstance._setStatus(renderingInstancesStatuses.bindingEventHandlers);
+
 	var element = document.querySelector(renderingInstance.el);
 
 	if ( ! element) {

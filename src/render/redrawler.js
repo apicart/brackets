@@ -1,6 +1,6 @@
 import {renderToString} from './renderToString';
 import {each} from '../shared/utils';
-import {getRenderingInstance} from './runtime/renderingInstances';
+import {getRenderingInstance, renderingInstancesStatuses} from './runtime/renderingInstances';
 import {bindEventHandlers} from './binders/bindEventHandlers';
 import {nonInitializedElementAttributeName} from '../shared/variables';
 
@@ -10,11 +10,13 @@ export function redrawInstance(instanceId) {
 		renderingInstance = getRenderingInstance(instanceId),
 		targetElement = document.querySelector(renderingInstance.el);
 
+	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
+
 	if ( ! targetElement) {
 		return;
 	}
 
-	renderingInstance.beforeRender.call(renderingInstance, targetElement);
+	renderingInstance.beforeRender(targetElement);
 
 	var
 		templateObject = renderToString(renderingInstance),
@@ -40,5 +42,6 @@ export function redrawInstance(instanceId) {
 
 	bindEventHandlers(renderingInstance);
 	targetElement.removeAttribute(nonInitializedElementAttributeName);
-	renderingInstance.afterRender.call(renderingInstance, targetElement);
+	renderingInstance.afterRender(targetElement);
+	renderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
 }
