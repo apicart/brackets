@@ -1,6 +1,5 @@
 import {each} from '../../shared/utils';
 import {redrawInstance} from '../redrawler';
-import {renderingInstancesStatuses} from '../runtime/renderingInstances';
 
 
 /**
@@ -21,7 +20,7 @@ export function bindPropertyDescriptors(renderingInstance) {
 			set: function (value) {
 				renderingInstance._data[propertyKey] = value;
 
-				if (renderingInstance._status === renderingInstancesStatuses.rendered) {
+				if (renderingInstance._redrawingEnabled) {
 					redrawInstance(renderingInstance.instanceId);
 				}
 			}
