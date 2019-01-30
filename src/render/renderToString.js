@@ -15,11 +15,7 @@ var templatesCache = {};
  * @return {{}}
  */
 export function renderToString(renderingInstance) {
-	renderingInstance._setStatus(renderingInstancesStatuses.processing);
-
-	if (typeof renderingInstance.beforeRender === 'function') {
-		renderingInstance.beforeRender.call(renderingInstance);
-	}
+	renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
 
 	var
 		cacheKey = renderingInstance.cacheKey,
@@ -73,7 +69,7 @@ export function renderToString(renderingInstance) {
 		}
 	}
 
-	renderingInstance._setStatus(renderingInstancesStatuses.rendered);
+	renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
 
 	return {
 		templateString: templateString,
