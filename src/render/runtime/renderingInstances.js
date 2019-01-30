@@ -5,9 +5,12 @@ import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
 
 export var renderingInstances = {};
 export var renderingInstancesStatuses = {
+	bindingEventHandlers: 'bindingEventHandlers',
 	pending: 'pending',
-	processing: 'processing',
-	rendered: 'rendered'
+	redrawing: 'redrawing',
+	renderingToString: 'renderingToString',
+	renderingToStringDone: 'renderToStringDone',
+	redrawingDone: 'redrawingDone',
 };
 
 export function getRenderingInstances(type) {
