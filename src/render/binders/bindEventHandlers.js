@@ -1,6 +1,6 @@
 import {Brackets, eventHandlersAttributeName} from '../../shared/variables';
 import {each} from '../../shared/utils';
-import {renderingInstancesStatuses} from "../runtime/renderingInstances";
+import {renderingInstancesStatuses} from '../runtime/renderingInstances';
 
 
 /**

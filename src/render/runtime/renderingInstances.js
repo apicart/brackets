@@ -10,7 +10,7 @@ export var renderingInstancesStatuses = {
 	redrawing: 'redrawing',
 	renderingToString: 'renderingToString',
 	renderingToStringDone: 'renderToStringDone',
-	redrawingDone: 'redrawingDone',
+	redrawingDone: 'redrawingDone'
 };
 
 export function getRenderingInstances(type) {
@@ -65,7 +65,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 				this._redrawingEnabled = false;
 				parameters.afterRender.call(this, targetElement);
-				this._redrawingEnabled = true
+				this._redrawingEnabled = true;
 			},
 			beforeRender: function (targetElement) {
 				if ( ! parameters.beforeRender) {
@@ -92,7 +92,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			_redrawingEnabled: true,
 			_status: renderingInstancesStatuses.pending,
 			_setStatus: function (status) {
-				if (this._status = status) {
+				if (this._status === status) {
 					return;
 				}
 
