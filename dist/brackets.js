@@ -586,6 +586,7 @@
 			});
 		}
 
+		componentRenderingInstance.beforeRender();
 		componentRenderingInstance._parent = this.parentInstance;
 
 		var
