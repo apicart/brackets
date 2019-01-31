@@ -23,6 +23,7 @@ export function renderComponent(name, componentDataFromTemplate) {
 		});
 	}
 
+	componentRenderingInstance.beforeRender();
 	componentRenderingInstance._parent = this.parentInstance;
 
 	var
