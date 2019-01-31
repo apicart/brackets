@@ -437,7 +437,7 @@
 		redrawing: 'redrawing',
 		renderingToString: 'renderingToString',
 		renderingToStringDone: 'renderToStringDone',
-		redrawingDone: 'redrawingDone',
+		redrawingDone: 'redrawingDone'
 	};
 
 	function getRenderingInstances(type) {
@@ -519,7 +519,7 @@
 				_redrawingEnabled: true,
 				_status: renderingInstancesStatuses.pending,
 				_setStatus: function (status) {
-					if (this._status = status) {
+					if (this._status === status) {
 						return;
 					}
 
