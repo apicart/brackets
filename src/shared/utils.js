@@ -26,6 +26,10 @@ export function each(iterable, callback) {
 		keysLength,
 		key;
 
+	if (['undefined', 'number'].indexOf(typeof iterable) > -1 || iterable === null) {
+		return;
+	}
+
 	if (Array.isArray(iterable)) {
 		iterableLength = iterable.length;
 
