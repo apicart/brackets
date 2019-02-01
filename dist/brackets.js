@@ -57,6 +57,10 @@
 			keysLength,
 			key;
 
+		if (['undefined', 'number'].indexOf(typeof iterable) > -1 || iterable === null) {
+			return;
+		}
+
 		if (Array.isArray(iterable)) {
 			iterableLength = iterable.length;
 
@@ -512,7 +516,22 @@
 					this.data[property] = value;
 					bindPropertyDescriptors(this);
 				},
+				_create: function () {
+					if (parameters.onCreate) {
+						parameters.onCreate.call(this);
+					}
+
+					renderingInstances[this.instanceId] = this;
+					return this;
+				},
 				_data: {},
+				_destroy: function () {
+					if (parameters.onDestroy) {
+						parameters.onDestroy.call(this);
+					}
+
+					delete renderingInstances[this.instanceId];
+				},
 				_hash: generateHash(),
 				_type: parameters._type || 'view',
 				_parent: null,
@@ -562,9 +581,7 @@
 			throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 		}
 
-		renderingInstances[instance.instanceId] = instance;
-
-		return instance;
+		return instance._create();
 	}
 
 	var components = {
@@ -787,11 +804,16 @@
 			renderingInstance = getRenderingInstance(instanceId),
 			targetElement = document.querySelector(renderingInstance.el);
 
-		renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
-
 		if ( ! targetElement) {
 			return;
 		}
+
+		renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
+
+		each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
+			var instanceId = instanceElement.getAttribute(selectorAttributeName);
+			getRenderingInstance(instanceId)._destroy();
+		});
 
 		renderingInstance.beforeRender(targetElement);
 
