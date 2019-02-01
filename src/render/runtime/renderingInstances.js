@@ -85,7 +85,22 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				this.data[property] = value;
 				bindPropertyDescriptors(this);
 			},
+			_create: function () {
+				if (parameters.onCreate) {
+					parameters.onCreate.call(this);
+				}
+
+				renderingInstances[this.instanceId] = this;
+				return this;
+			},
 			_data: {},
+			_destroy: function () {
+				if (parameters.onDestroy) {
+					parameters.onDestroy.call(this);
+				}
+
+				delete renderingInstances[this.instanceId];
+			},
 			_hash: generateHash(),
 			_type: parameters._type || 'view',
 			_parent: null,
@@ -135,7 +150,5 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 	}
 
-	renderingInstances[instance.instanceId] = instance;
-
-	return instance;
+	return instance._create();
 }
