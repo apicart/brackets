@@ -2,7 +2,7 @@ import {renderToString} from './renderToString';
 import {each} from '../shared/utils';
 import {getRenderingInstance, renderingInstancesStatuses} from './runtime/renderingInstances';
 import {bindEventHandlers} from './binders/bindEventHandlers';
-import {nonInitializedElementAttributeName} from '../shared/variables';
+import {nonInitializedElementAttributeName, selectorAttributeName} from '../shared/variables';
 
 
 export function redrawInstance(instanceId) {
@@ -10,11 +10,16 @@ export function redrawInstance(instanceId) {
 		renderingInstance = getRenderingInstance(instanceId),
 		targetElement = document.querySelector(renderingInstance.el);
 
-	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
-
 	if ( ! targetElement) {
 		return;
 	}
+
+	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
+
+	each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
+		var instanceId = instanceElement.getAttribute(selectorAttributeName);
+		getRenderingInstance(instanceId)._destroy();
+	});
 
 	renderingInstance.beforeRender(targetElement);
 
