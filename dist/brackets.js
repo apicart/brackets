@@ -51,6 +51,22 @@
 	function each(iterable, callback) {
 		var
 			iterator,
+			iteratorObject = {
+				iterableLength: 0,
+				counter: 0,
+				isEven: function () {
+					return this.counter % 2 === 0;
+				},
+				isOdd: function () {
+					return Math.abs(this.counter % 2) === 1;
+				},
+				isFirst: function () {
+					return this.counter === 1
+				},
+				isLast: function () {
+					return this.counter === iterableLength
+				}
+			},
 			iterableLength,
 			statement,
 			keys,
@@ -62,14 +78,16 @@
 		}
 
 		if (Array.isArray(iterable)) {
-			iterableLength = iterable.length;
+			iterableLength = Object.keys(iterable).length;
 
 			if ( ! iterableLength) {
 				return;
 			}
 
+			iteratorObject.iterableLength = iterableLength;
 			for (iterator = 0; iterator < iterableLength; iterator ++) {
-				statement = callback(iterator, iterable[iterator]);
+				iteratorObject.counter ++;
+				statement = callback.apply(iteratorObject, [iterator, iterable[iterator]]);
 
 				if (statement === false) {
 					break;
@@ -82,11 +100,14 @@
 
 			if ( ! keys.length) {
 				return;
+
 			}
 
+			iteratorObject.iterableLength = keysLength;
 			for (iterator = 0; iterator < keysLength; iterator ++) {
+				iteratorObject.counter ++;
 				key = keys[iterator];
-				statement = callback(key, iterable[key]);
+				statement = callback.apply(iteratorObject, [key, iterable[key]]);
 
 				if (statement === false) {
 					break;
@@ -127,6 +148,21 @@
 		elseif: '} else if (#0) {',
 		for: 'for (var #0) {',
 		'/for': '}',
+		foreach: function (parameters) {
+			var
+				parametersToArray = parameters[0].split(','),
+				iterableVariableName = parametersToArray[0],
+				keyValueIsPassed = parametersToArray.length === 3,
+				forEachFunctionKeyParameterName = keyValueIsPassed ? parametersToArray[1].trim() : 'key',
+				forEachFunctionValueParameterName = (keyValueIsPassed ? parametersToArray[2] : parametersToArray[1]).trim();
+
+			var
+				part1 = '_runtime.utils.each(' + iterableVariableName,
+				part2 = ', function (' + forEachFunctionKeyParameterName + ', ' + forEachFunctionValueParameterName +') {';
+
+			return part1 + part2;
+		},
+		'/foreach': '});',
 		if: 'if (#0) {',
 		'/if': '}',
 		js: '#0;',
@@ -676,7 +712,10 @@
 				parentInstance: renderingInstance.instanceId,
 				components: getComponents(),
 				getFilter: getFilter,
-				renderedComponents: []
+				renderedComponents: [],
+				utils: {
+					each: each
+				}
 			},
 			template = renderingInstance.template,
 			templateArguments = [runtime],
