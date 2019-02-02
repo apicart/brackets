@@ -26,7 +26,10 @@ export function renderToString(renderingInstance) {
 			parentInstance: renderingInstance.instanceId,
 			components: getComponents(),
 			getFilter: getFilter,
-			renderedComponents: []
+			renderedComponents: [],
+			utils: {
+				each: each
+			}
 		},
 		template = renderingInstance.template,
 		templateArguments = [runtime],
