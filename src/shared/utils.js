@@ -20,6 +20,22 @@ export function cloneObject(obj) {
 export function each(iterable, callback) {
 	var
 		iterator,
+		iteratorObject = {
+			iterableLength: 0,
+			counter: 0,
+			isEven: function () {
+				return this.counter % 2 === 0;
+			},
+			isOdd: function () {
+				return Math.abs(this.counter % 2) === 1;
+			},
+			isFirst: function () {
+				return this.counter === 1
+			},
+			isLast: function () {
+				return this.counter === iterableLength
+			}
+		},
 		iterableLength,
 		statement,
 		keys,
@@ -31,14 +47,16 @@ export function each(iterable, callback) {
 	}
 
 	if (Array.isArray(iterable)) {
-		iterableLength = iterable.length;
+		iterableLength = Object.keys(iterable).length;
 
 		if ( ! iterableLength) {
 			return;
 		}
 
+		iteratorObject.iterableLength = iterableLength;
 		for (iterator = 0; iterator < iterableLength; iterator ++) {
-			statement = callback(iterator, iterable[iterator]);
+			iteratorObject.counter ++;
+			statement = callback.apply(iteratorObject, [iterator, iterable[iterator]]);
 
 			if (statement === false) {
 				break;
@@ -51,11 +69,14 @@ export function each(iterable, callback) {
 
 		if ( ! keys.length) {
 			return;
+
 		}
 
+		iteratorObject.iterableLength = keysLength;
 		for (iterator = 0; iterator < keysLength; iterator ++) {
+			iteratorObject.counter ++;
 			key = keys[iterator];
-			statement = callback(key, iterable[key]);
+			statement = callback.apply(iteratorObject, [key, iterable[key]]);
 
 			if (statement === false) {
 				break;
