@@ -61,10 +61,10 @@
 					return Math.abs(this.counter % 2) === 1;
 				},
 				isFirst: function () {
-					return this.counter === 1
+					return this.counter === 1;
 				},
 				isLast: function () {
-					return this.counter === iterableLength
+					return this.counter === iterableLength;
 				}
 			},
 			iterableLength,
@@ -154,9 +154,8 @@
 				iterableVariableName = parametersToArray[0],
 				keyValueIsPassed = parametersToArray.length === 3,
 				forEachFunctionKeyParameterName = keyValueIsPassed ? parametersToArray[1].trim() : 'key',
-				forEachFunctionValueParameterName = (keyValueIsPassed ? parametersToArray[2] : parametersToArray[1]).trim();
+				forEachFunctionValueParameterName = (keyValueIsPassed ? parametersToArray[2] : parametersToArray[1]).trim(),
 
-			var
 				part1 = '_runtime.utils.each(' + iterableVariableName,
 				part2 = ', function (' + forEachFunctionKeyParameterName + ', ' + forEachFunctionValueParameterName +') {';
 
