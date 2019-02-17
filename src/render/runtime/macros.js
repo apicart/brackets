@@ -23,17 +23,8 @@ var macros = {
 	for: 'for (var #0) {',
 	'/for': '}',
 	foreach: function (parameters) {
-		var
-			parametersToArray = parameters[0].split(','),
-			iterableVariableName = parametersToArray[0],
-			keyValueIsPassed = parametersToArray.length === 3,
-			forEachFunctionKeyParameterName = keyValueIsPassed ? parametersToArray[1].trim() : 'key',
-			forEachFunctionValueParameterName = (keyValueIsPassed ? parametersToArray[2] : parametersToArray[1]).trim(),
-
-			part1 = '_runtime.utils.each(' + iterableVariableName,
-			part2 = ', function (' + forEachFunctionKeyParameterName + ', ' + forEachFunctionValueParameterName +') {';
-
-		return part1 + part2;
+		parameters = parameters[0].split('as');
+		return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
 	},
 	'/foreach': '});',
 	if: 'if (#0) {',
