@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "dev": "rollup -w src -c scripts/dev.js",
+  	"build": "rollup -c scripts/prod.js && rollup -c scripts/prod.min.js && rollup -c scripts/test-stack.js",
     "build:prod": "rollup -c scripts/prod.js",
     "build:prod-min": "rollup -c scripts/prod.min.js",
     "build:test-stack": "rollup -c scripts/test-stack.js",
