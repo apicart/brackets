@@ -34,7 +34,7 @@ describe('Macros', function () {
 	});
 
 
-	it('while, breakif, continueif', function () {
+	it('while, breakIf, continueIf', function () {
 		var templateObject = templating.renderToString({
 			data: {i: 3},
 			template: '{{while i--}}{{$i}}{{/while}}'
@@ -44,14 +44,14 @@ describe('Macros', function () {
 
 		templateObject = templating.renderToString({
 			data: {i: 3},
-			template: '{{while i--}}{{continueif i === 1}}{{$i}}{{/while}}'
+			template: '{{while i--}}{{continueIf i === 1}}{{$i}}{{/while}}'
 		});
 
 		assert.equal(templateObject.templateString, '20');
 
 		templateObject = templating.renderToString({
 			data: {i: 3},
-			template: '{{while i--}}{{breakif i === 0}}{{$i}}{{/while}}'
+			template: '{{while i--}}{{breakIf i === 0}}{{$i}}{{/while}}'
 		});
 
 		assert.equal(templateObject.templateString, '21');
