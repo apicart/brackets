@@ -2,7 +2,9 @@ import {Brackets} from '../../shared/variables';
 
 
 var macros = {
+	break: 'break;',
 	breakIf: 'if (#0) break;',
+	continue: 'continue;',
 	continueIf: 'if (#0) continue;',
 	component: function (parameters) {
 		var
