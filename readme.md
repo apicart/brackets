@@ -282,16 +282,28 @@ There are the following macros defined by default.
 <table>
    <tbody>
       <tr>
-         <td style="text-align:center">{{for condition} … {/for}</td>
+         <td style="text-align:center">{{for condition} … {{/for}}</td>
          <td style="text-align:center">For loop</td>
       </tr>
+	  <tr>
+         <td style="text-align:center">{{foreach values as key,value}} … {{/foreach}}</td>
+         <td style="text-align:center">Foreach loop</td>
+      </tr>
       <tr>
-         <td style="text-align:center">{{while condition}} … {/while}</td>
+         <td style="text-align:center">{{while condition}} … {{/while}}</td>
          <td style="text-align:center">While loop</td>
+      </tr>
+	  <tr>
+         <td style="text-align:center">{{continue}}</td>
+         <td style="text-align:center">Jump to the next iteration</td>
       </tr>
       <tr>
          <td style="text-align:center">{{continueIf condition}}</td>
          <td style="text-align:center">Conditional jump to the next iteration</td>
+      </tr>
+	  <tr>
+         <td style="text-align:center">{{break}</td>
+         <td style="text-align:center">Loop break</td>
       </tr>
       <tr>
          <td style="text-align:center">{{breakIf condition}</td>
@@ -513,7 +525,7 @@ Brackets.render({
 ```
 
 ## Configuration Reserved Keywords
-This keywords you must not use in the configuration object `_data, _instanceId, _hash, _type, _parent, _setStatus, _status`.
+This keywords you must not use in the configuration object `_create, _data, _destroy, _instanceId, _hash, _type, _parent, _setStatus, _status`.
 
 ## Rendering Instances
 Rendering instances are interactive objects that were used during the rendering process of each template or component. 
@@ -527,7 +539,17 @@ myInstance.data.number += 2 // Changing data structure in the renderingInstance 
 myInstance.addData('key', 'value'); // This will add new data by key into the data object
 ```
 
-Instances have also some statuses. The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
+Instances have also some statuses.
+- create: When the instance is succesfully created.
+- pending: The default status after creation.
+- redrawing: When the instance is being redrawed.
+- renderingToString: When the instance template is being rendered into string.
+- renderingToStringDone: When the instance template is rendered to string.
+- bindingEventHandlers: When event handlers for the component are being attached.
+- redrawingDone: When the instance is completely redrawed and ready to use.
+- destroy: When the instance is being removed.
+
+The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
 
 You can listen to these changes by providing `onStatusChange` parameter, that must be a function. The rendered instance is passed as `this` parameter and the status parameter is passed as a function argument. The usage is as follows.
 
