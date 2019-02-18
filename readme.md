@@ -286,8 +286,8 @@ There are the following macros defined by default.
          <td style="text-align:center">For loop</td>
       </tr>
 	  <tr>
-         <td style="text-align:center">{{foreach values as key,value}} … {{/foreach}}</td>
-         <td style="text-align:center">Foreach loop</td>
+         <td style="text-align:center">{{foreach values as key, value}} … {{/foreach}}</td>
+		  <td style="text-align:center">Foreach loop, the <strong>this</strong> object is an iterator object with <i>iterableLength</i> and <i>counter</i> parameters and <i>isFirst</i>, <i>isLast</i>, <i>isOddd</i> and <i>isEvent</i> functions.</td>
       </tr>
       <tr>
          <td style="text-align:center">{{while condition}} … {{/while}}</td>
@@ -445,10 +445,10 @@ Brackets.render({
 	cacheKey: <string|null>,
 	data: <object|null>,
 	el: <string|Element|NodeList>,
-	instanceId <string|null>: ,
+	instanceId <string|null>,
 	methods: <object|null>,
 	onStatusChange: <function|null>,
-	template: <string|null>,
+	template: <string|null>
 })
 ```
 
@@ -514,13 +514,13 @@ Brackets
 Brackets.render({
 	afterRender: <function|null>,
 	beforeRender: <function|null>,
-	addData: <function|null>
+	addData: <function|null>,
 	cacheKey: <string|null>,
 	data: <object|null>,
-	instanceId <string|null>: ,
+	instanceId <string|null>,
 	methods: <object|null>,
 	onStatusChange: <function|null>,
-	template: <string>,
+	template: <string>
 })
 ```
 
@@ -539,15 +539,16 @@ myInstance.data.number += 2 // Changing data structure in the renderingInstance 
 myInstance.addData('key', 'value'); // This will add new data by key into the data object
 ```
 
-Instances have also some statuses.
-- create: When the instance is succesfully created.
-- pending: The default status after creation.
-- redrawing: When the instance is being redrawed.
-- renderingToString: When the instance template is being rendered into string.
-- renderingToStringDone: When the instance template is rendered to string.
-- bindingEventHandlers: When event handlers for the component are being attached.
-- redrawingDone: When the instance is completely redrawed and ready to use.
-- destroy: When the instance is being removed.
+Instances have also some statuses. You can use string or pass the constant from brackets object `Brackets.renderingInstancesStatuses.<status>`
+	
+- **create**: When the instance is succesfully created.
+- **pending**: The default status after creation.
+- **redrawing**: When the instance is being redrawed.
+- **renderingToString**: When the instance template is being rendered into string.
+- **renderingToStringDone**: When the instance template is rendered to string.
+- **bindingEventHandlers**: When event handlers for the component are being attached.
+- **redrawingDone**: When the instance is completely redrawed and ready to use.
+- **destroy**: When the instance is being removed.
 
 The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
 
