@@ -6,6 +6,8 @@ import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
 export var renderingInstances = {};
 export var renderingInstancesStatuses = {
 	bindingEventHandlers: 'bindingEventHandlers',
+	create: 'create',
+	destroy: 'destroy',
 	pending: 'pending',
 	redrawing: 'redrawing',
 	renderingToString: 'renderingToString',
@@ -80,25 +82,20 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			data: parameters.data ? cloneObject(parameters.data) : {},
 			methods: parameters.methods || {},
 			onStatusChange: parameters.onStatusChange || function () {},
+			resultCacheEnabled: parameters.resultCacheEnabled || false,
 			template: parameters.template,
 			addData: function (property, value) {
 				this.data[property] = value;
 				bindPropertyDescriptors(this);
 			},
 			_create: function () {
-				if (parameters.onCreate) {
-					parameters.onCreate.call(this);
-				}
-
+				this._setStatus(renderingInstancesStatuses.create);
 				renderingInstances[this.instanceId] = this;
 				return this;
 			},
 			_data: {},
 			_destroy: function () {
-				if (parameters.onDestroy) {
-					parameters.onDestroy.call(this);
-				}
-
+				this._setStatus(renderingInstancesStatuses.destroy);
 				delete renderingInstances[this.instanceId];
 			},
 			_hash: generateHash(),
