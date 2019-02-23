@@ -27,12 +27,21 @@ var
 		'/for': '}',
 		foreach: function (parameters) {
 			parameters = parameters[0].split('as');
-			return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
+
+			var callbackFunctionParameters = parameters[1].trim();
+
+			if (parameters[1].split(',').length === 1) {
+				callbackFunctionParameters = 'key, ' + callbackFunctionParameters;
+			}
+
+			return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + callbackFunctionParameters + ') {';
 		},
 		'/foreach': '});',
 		if: 'if (#0) {',
 		'/if': '}',
 		js: '#0;',
+		returnFalseIf: 'if (#0) return false;',
+		returnIf: 'if (#0) return;',
 		var: 'var #0;',
 		while: 'while (#0) {',
 		'/while': '}'
