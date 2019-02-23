@@ -24,7 +24,7 @@ describe('Complex', function () {
 
 		assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
 		assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
-		assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', renderingInstanceHash) === 'string');
+		assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', renderingInstanceHash) === 'object');
 	});
 
 	it('Template from element, cache, text', function () {
