@@ -17,8 +17,7 @@ export function redrawInstance(instanceId) {
 	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 
 	each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
-		var instanceId = instanceElement.getAttribute(selectorAttributeName);
-		getRenderingInstance(instanceId)._destroy();
+		getRenderingInstance(instanceElement.getAttribute(selectorAttributeName))._destroy();
 	});
 
 	renderingInstance.beforeRender(targetElement);
@@ -35,15 +34,17 @@ export function redrawInstance(instanceId) {
 
 	targetElement.innerHTML = templateObject.templateString;
 
-	each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
-		var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
+	if (templateObject.templateRuntime) {
+		each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
+			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
 
-		bindEventHandlers(componentRenderingInstance);
+			bindEventHandlers(componentRenderingInstance);
 
-		if (typeof componentRenderingInstance.afterRender === 'function') {
-			componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
-		}
-	});
+			if (typeof componentRenderingInstance.afterRender === 'function') {
+				componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
+			}
+		});
+	}
 
 	bindEventHandlers(renderingInstance);
 	targetElement.removeAttribute(nonInitializedElementAttributeName);
