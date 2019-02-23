@@ -1,42 +1,44 @@
 import {Brackets} from '../../shared/variables';
 
 
-var macros = {
-	break: 'break;',
-	breakIf: 'if (#0) break;',
-	continue: 'continue;',
-	continueIf: 'if (#0) continue;',
-	component: function (parameters) {
-		var
-			parametersToArray = parameters[0].split(','),
-			componentName = parametersToArray[0],
-			componentData;
+var
+	macros = {
+		break: 'break;',
+		breakIf: 'if (#0) break;',
+		continue: 'continue;',
+		continueIf: 'if (#0) continue;',
+		component: function (parameters) {
+			var
+				parametersToArray = parameters[0].split(','),
+				componentName = parametersToArray[0],
+				componentData;
 
-		parametersToArray.shift();
-		componentData = '{' + parametersToArray.join(',') + '}';
+			parametersToArray.shift();
+			componentData = '{' + parametersToArray.join(',') + '}';
 
-		return '_template += _runtime.components.renderToString.call('
-				+ '_runtime, \'' + componentName + '\', ' + componentData
-			+ ');';
+			return '_template += _runtime.components.renderToString.call('
+					+ '_runtime, \'' + componentName + '\', ' + componentData
+				+ ');';
+		},
+		dump: 'console.log(#0);',
+		else: '} else {',
+		elseif: '} else if (#0) {',
+		for: 'for (var #0) {',
+		'/for': '}',
+		foreach: function (parameters) {
+			parameters = parameters[0].split('as');
+			return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
+		},
+		'/foreach': '});',
+		if: 'if (#0) {',
+		'/if': '}',
+		js: '#0;',
+		var: 'var #0;',
+		while: 'while (#0) {',
+		'/while': '}'
 	},
-	dump: 'console.log(#0);',
-	else: '} else {',
-	elseif: '} else if (#0) {',
-	for: 'for (var #0) {',
-	'/for': '}',
-	foreach: function (parameters) {
-		parameters = parameters[0].split('as');
-		return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
-	},
-	'/foreach': '});',
-	if: 'if (#0) {',
-	'/if': '}',
-	js: '#0;',
-	var: 'var #0;',
-	while: 'while (#0) {',
-	'/while': '}'
-};
-
+	openingDelimiter,
+	closingDelimiter;
 
 export var macrosRegularExpression;
 
@@ -66,11 +68,18 @@ export function getMacros() {
 
 
 function generateMacrosRegularExpression() {
+	// First part matches macros, second part after | matches variables
 	macrosRegularExpression = new RegExp(
-		/* eslint-disable-next-line no-useless-escape */
-		'{{(?:(?:(' + Object.keys(macros).join('|').replace('/', '\/') + ')(?: (.*?))?)|(?:(\\$.*?)))}}'
+		openingDelimiter
+			/* eslint-disable-next-line no-useless-escape */
+			+ ' *(?:(?:(' + Object.keys(macros).join('|').replace('/', '\/') + ')(?: (.*?))?) *| *(?:(\\$.*?))) *'
+		+ closingDelimiter
 	);
 }
 
 
-generateMacrosRegularExpression();
+export function initMacros(config) {
+	openingDelimiter = config.delimiters[0];
+	closingDelimiter = config.delimiters[1];
+	generateMacrosRegularExpression();
+}
