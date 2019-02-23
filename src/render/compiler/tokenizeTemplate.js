@@ -1,4 +1,4 @@
-import {each} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {macrosRegularExpression} from "../runtime/macros";
 
 
@@ -28,7 +28,7 @@ export function tokenizeTemplate(template) {
 			tokenFullMatch = token[0];
 			token.shift();
 
-			each(token, function (tokenPartKey, tokenPart) {
+			utils.each(token, function (tokenPartKey, tokenPart) {
 				if (isNaN(parseInt(tokenPartKey))) {
 					return;
 				}

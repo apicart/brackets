@@ -1,5 +1,5 @@
 import {templateLiteral} from '../../shared/variables';
-import {each} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {processVariable} from './processors/procesVariable';
 import {processMacro} from './processors/processMacro';
 import {getMacros} from '../runtime/macros';
@@ -18,7 +18,7 @@ export function compileTemplate(tokens, templateParametersNames) {
 		macroTokenFirstPart,
 		templateString = 'var _template = \'\';' + _templateAdd.toString() + ';';
 
-	each(tokens.text, function (tokenKey, tokenText) {
+	utils.each(tokens.text, function (tokenKey, tokenText) {
 		templateString += '_template += _templateAdd(' + templateLiteral + tokenText + templateLiteral + ');';
 
 		if (tokenKey in tokens.macros) {
@@ -51,5 +51,6 @@ export function compileTemplate(tokens, templateParametersNames) {
  * @private
  */
 function _templateAdd(data, filter) {
+	/* eslint-disable-next-line no-undef */
 	return _runtime.templateAdd(data, filter);
 }

@@ -1,5 +1,5 @@
 import {renderToString} from './renderToString';
-import {each} from '../shared/utils';
+import {utils} from '../shared/utils';
 import {getRenderingInstance, renderingInstancesStatuses} from './runtime/renderingInstances';
 import {bindEventHandlers} from './binders/bindEventHandlers';
 import {nonInitializedElementAttributeName, selectorAttributeName} from '../shared/variables';
@@ -16,7 +16,7 @@ export function redrawInstance(instanceId) {
 
 	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 
-	each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
+	utils.each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
 		getRenderingInstance(instanceElement.getAttribute(selectorAttributeName))._destroy();
 	});
 
@@ -35,7 +35,7 @@ export function redrawInstance(instanceId) {
 	targetElement.innerHTML = templateObject.templateString;
 
 	if (templateObject.templateRuntime) {
-		each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
+		utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
 			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
 
 			bindEventHandlers(componentRenderingInstance);

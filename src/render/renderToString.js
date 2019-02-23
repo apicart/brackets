@@ -1,5 +1,5 @@
 import {templateLiteralsEnabled, selectorAttributeName, eventHandlersAttributeName} from '../shared/variables';
-import {each} from '../shared/utils';
+import {utils} from '../shared/utils';
 import {tokenizeTemplate} from './compiler/tokenizeTemplate';
 import {compileTemplate} from './compiler/compileTemplate';
 import {getFilter} from './runtime/filters';
@@ -56,9 +56,7 @@ function generateTemplateString(renderingInstance) {
 			components: getComponents(),
 			getFilter: getFilter,
 			renderedComponents: [],
-			utils: {
-				each: each
-			},
+			utils: utils,
 			templateAdd: function (data, filter) {
 				if (typeof data === 'undefined') {
 					return '';
@@ -92,7 +90,7 @@ function generateTemplateString(renderingInstance) {
 		}
 	}
 
-	each(data, function (key, value) {
+	utils.each(data, function (key, value) {
 		templateArguments.push(value);
 	});
 

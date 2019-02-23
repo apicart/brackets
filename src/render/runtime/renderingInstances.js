@@ -1,4 +1,4 @@
-import {cloneObject, each, generateHash} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {selectorAttributeName} from '../../shared/variables';
 import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
 
@@ -22,7 +22,7 @@ export function getRenderingInstances(type) {
 
 	var selectedInstances = {};
 
-	each(renderingInstances, function (id, instance) {
+	utils.each(renderingInstances, function (id, instance) {
 		if (instance._type === type) {
 			selectedInstances[id] = instance;
 		}
@@ -52,7 +52,7 @@ export function getRenderingInstance(id, required) {
  * @return {{}}
  */
 export function createRenderingInstanceObject(parameters, targetElement) {
-	parameters = cloneObject(parameters);
+	parameters = utils.cloneObject(parameters);
 
 	if (typeof parameters.template === 'function') {
 		parameters.template = parameters.template.call(parameters);
@@ -79,7 +79,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				this._redrawingEnabled = true;
 			},
 			cacheKey: parameters.cacheKey || null,
-			data: parameters.data ? cloneObject(parameters.data) : {},
+			data: parameters.data ? utils.cloneObject(parameters.data) : {},
 			methods: parameters.methods || {},
 			onStatusChange: parameters.onStatusChange || function () {},
 			resultCacheEnabled: parameters.resultCacheEnabled || false,
@@ -98,7 +98,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				this._setStatus(renderingInstancesStatuses.destroy);
 				delete renderingInstances[this.instanceId];
 			},
-			_hash: generateHash(),
+			_hash: utils.generateHash(),
 			_type: parameters._type || 'view',
 			_parent: null,
 			_redrawingEnabled: true,

@@ -1,4 +1,4 @@
-import {each} from '../../../shared/utils';
+import {utils} from '../../../shared/utils';
 import {getMacros} from '../../runtime/macros';
 
 
@@ -17,7 +17,7 @@ export function processMacro(tokenMatchArray) {
 	if (typeof macros[macroName] === 'string') {
 		parsedToken = macros[macroName];
 
-		each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {
+		utils.each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {
 			parsedToken = parsedToken.replace(new RegExp('#' + tokenMatchPartKey), tokenMatchPart);
 		});
 

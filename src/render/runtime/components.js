@@ -1,5 +1,5 @@
 import {Brackets} from '../../shared/variables';
-import {cloneObject, each} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {createRenderingInstanceObject} from './renderingInstances';
 import {renderToString} from '../renderToString';
 
@@ -18,7 +18,7 @@ var components = {
 export function renderComponent(name, componentDataFromTemplate) {
 	var componentRenderingInstance = getComponent(name);
 	if (componentDataFromTemplate) {
-		each(componentDataFromTemplate, function (key, value) {
+		utils.each(componentDataFromTemplate, function (key, value) {
 			componentRenderingInstance.addData(key, value);
 		});
 	}
@@ -69,7 +69,7 @@ export function getComponent(name, required) {
 		return null;
 	}
 
-	return createRenderingInstanceObject(cloneObject(components.register[name]));
+	return createRenderingInstanceObject(utils.cloneObject(components.register[name]));
 }
 
 

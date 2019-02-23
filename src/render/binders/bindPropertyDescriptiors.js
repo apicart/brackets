@@ -1,4 +1,4 @@
-import {each} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {redrawInstance} from '../redrawler';
 
 
@@ -6,7 +6,7 @@ import {redrawInstance} from '../redrawler';
  * @param {{}} renderingInstance
  */
 export function bindPropertyDescriptors(renderingInstance) {
-	each(renderingInstance.data, function (propertyKey, propertyValue) {
+	utils.each(renderingInstance.data, function (propertyKey, propertyValue) {
 		if (propertyKey in renderingInstance._data) {
 			return;
 		}

@@ -1,5 +1,5 @@
 import {Brackets} from '../shared/variables';
-import {each} from '../shared/utils';
+import {utils} from '../shared/utils';
 import {redrawInstance} from './redrawler';
 import {createRenderingInstanceObject} from './runtime/renderingInstances';
 
@@ -34,7 +34,7 @@ export function render(parameters) {
 		return;
 	}
 
-	each(targetElements, function (key, targetElement) {
+	utils.each(targetElements, function (key, targetElement) {
 		redrawInstance(createRenderingInstanceObject(parameters, targetElement).instanceId);
 	});
 
