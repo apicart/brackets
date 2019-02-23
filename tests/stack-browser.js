@@ -274,13 +274,11 @@
 
 			assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
 
-			// 1
+			appElement1.querySelector('button').click();
 			appElement1.querySelector('button').click();
 			appElement1.querySelector('button').click();
 
 			assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
-
-			appElement1.querySelector('button').click();
 
 			assert.equal(Brackets.getRenderingInstance(renderingInstanceHash).data.number, 3);
 		});
