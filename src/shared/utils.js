@@ -32,7 +32,7 @@ utils.mergeObjects = function () {
 		});
 	});
 
-	return newObject
+	return newObject;
 };
 
 

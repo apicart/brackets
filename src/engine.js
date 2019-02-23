@@ -9,8 +9,8 @@ import {
 } from './render/runtime/renderingInstances';
 import {addComponent, getComponents} from './render/runtime/components';
 import {addFilter, getFilter, getFilters} from './render/runtime/filters';
-import {utils} from "./shared/utils";
-import {cacheManager} from "./render/cacheManager";
+import {utils} from './shared/utils';
+import {cacheManager} from './render/cacheManager';
 
 Brackets.utils = utils;
 Brackets.cacheManager = cacheManager;

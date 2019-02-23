@@ -1,5 +1,5 @@
 import {utils} from '../../shared/utils';
-import {macrosRegularExpression} from "../runtime/macros";
+import {macrosRegularExpression} from '../runtime/macros';
 
 
 var

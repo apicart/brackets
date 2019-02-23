@@ -5,7 +5,7 @@ import {compileTemplate} from './compiler/compileTemplate';
 import {getFilter} from './runtime/filters';
 import {getComponents} from './runtime/components';
 import {renderingInstancesStatuses} from './runtime/renderingInstances';
-import {cacheManager} from "./cacheManager";
+import {cacheManager} from './cacheManager';
 
 
 var
