@@ -13,6 +13,7 @@ describe('Filters', function () {
 				return text.charAt(0).toUpperCase() + text.slice(1);
 			})
 			.render({
+				resultCacheEnabled: true,
 				el: '#app',
 				data: {
 					text: 'text'

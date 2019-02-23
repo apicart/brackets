@@ -153,6 +153,7 @@
 					return text.charAt(0).toUpperCase() + text.slice(1);
 				})
 				.render({
+					resultCacheEnabled: true,
 					el: '#app',
 					data: {
 						text: 'text'
@@ -264,18 +265,24 @@
 
 		it('Template from object, cache, text', function () {
 			workspaceElement.innerHTML = '<div id="app"></div>';
+			var renderingInstanceHash;
 
 			Brackets.render({
 				el: '#app',
 				template: '{{$text}}',
 				cacheKey: 'test',
+				resultCacheEnabled: true,
 				data: {
 					text: "I love️ Brackets!"
+				},
+				afterRender: function () {
+					renderingInstanceHash = this._hash;
 				}
 			});
 
 			assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
-			assert.isTrue(typeof Brackets.getTemplateCache('test') === 'function');
+			assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
+			assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', renderingInstanceHash) === 'string');
 		});
 
 		it('Template from element, cache, text', function () {
@@ -290,7 +297,6 @@
 			});
 
 			assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
-			assert.isTrue(typeof Brackets.getTemplateCache('test') === 'function');
 		});
 
 

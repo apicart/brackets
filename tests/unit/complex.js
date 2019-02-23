@@ -7,18 +7,24 @@ describe('Complex', function () {
 
 	it('Template from object, cache, text', function () {
 		workspaceElement.innerHTML = '<div id="app"></div>';
+		var renderingInstanceHash;
 
 		Brackets.render({
 			el: '#app',
 			template: '{{$text}}',
 			cacheKey: 'test',
+			resultCacheEnabled: true,
 			data: {
 				text: "I love️ Brackets!"
+			},
+			afterRender: function () {
+				renderingInstanceHash = this._hash;
 			}
 		});
 
 		assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
-		assert.isTrue(typeof Brackets.getTemplateCache('test') === 'function');
+		assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
+		assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', renderingInstanceHash) === 'string');
 	});
 
 	it('Template from element, cache, text', function () {
@@ -33,7 +39,6 @@ describe('Complex', function () {
 		});
 
 		assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
-		assert.isTrue(typeof Brackets.getTemplateCache('test') === 'function');
 	});
 
 
