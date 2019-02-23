@@ -81,7 +81,9 @@ I ❤️ Brackets!
 ```
 
 ## Cache
-Cache speed's up the rendering process by caching the compiled template (it doesn't cache the rendered content). Just add the `cacheKey` parameter with unique value and that's it.
+Cache speed's up the rendering process. There are two types of cache. Functions cache and results cache.
+- Results cache: Caches the whole content of the rendered instance. This cache is good for templates where the variables are not changed. You can enable it by setting the `resultCacheEnabled` to true.
+- Functions cache: Caches only the generated template function not the result of the rendering process. Is good for templates that are used multiple times and its variables needs to be changed dynamically. You can enable it by adding the template `cacheKey` name.
 
 ```html
 <div id="app">
@@ -91,6 +93,7 @@ Cache speed's up the rendering process by caching the compiled template (it does
 Brackets.render({
 	el: '#app',
 	cacheKey: 'test',
+	resultCacheEnabled: true,
 	data: {
 		text: "I ❤️ Brackets!"
 	}
