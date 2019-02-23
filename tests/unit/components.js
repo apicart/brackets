@@ -58,6 +58,49 @@ describe('Components', function () {
 		appElement1.querySelector('button').click();
 		assert.equal(appElement1.innerText, 'Article 1 => Share (2)');
 	});
+
+	it('Add components, multiple usage, data object must be unique for each component, result cache.', function () {
+		workspaceElement.innerHTML = `
+			<div class="app" id="app-1">{{component shareArticle2, articleName: 'Article 1'}}</div>
+		`;
+		var renderingInstanceHash;
+
+		Brackets
+			.addComponent('shareButton2', {
+				data: {
+					number: 0
+				},
+				resultCacheEnabled: true,
+				cacheKey: 'shareButtons2',
+				methods: {
+					updateNumber: function () {
+						this.number ++;
+					}
+				},
+				afterRender: function () {
+					renderingInstanceHash = this._hash;
+				},
+				template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
+			})
+			.addComponent('shareArticle2', {
+				template: '<div>{{$articleName}} => {{component shareButton2}}</div>'
+			})
+			.render({
+				el: '.app'
+			});
+
+		var appElement1 = workspaceElement.querySelector('#app-1');
+
+		assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
+
+		appElement1.querySelector('button').click();
+		appElement1.querySelector('button').click();
+		appElement1.querySelector('button').click();
+
+		assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
+
+		assert.equal(Brackets.getRenderingInstance(renderingInstanceHash).data.number, 3);
+	});
 });
 
 
