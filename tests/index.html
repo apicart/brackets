@@ -6,6 +6,7 @@
 </head>
 <body>
 
+<div id="workspace"></div>
 <div id="mocha"></div>
 <script src="https://unpkg.com/chai/chai.js"></script>
 <script src="https://unpkg.com/mocha@5.2.0/mocha.js"></script>
@@ -15,8 +16,8 @@
 
 	mocha.setup('');
 </script>
-<script src="http://localhost/dist/brackets.js"></script>
-<script src="http://localhost/tests/stack-browser.js"></script>
+<script src="http://localhost:81/dist/brackets.js"></script>
+<script src="http://localhost:81/tests/stack-browser.js?3"></script>
 <script>
 	mocha.allowUncaught();
 	mocha.checkLeaks();
