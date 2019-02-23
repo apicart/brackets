@@ -1,5 +1,5 @@
 /** 
- * brackets.js v1.0.0-alpha1 
+ * brackets.js v1.0.0-alpha2 
  * (c) 2018-2019 Vladimír Macháček
  *  Released under the MIT License.
  */
@@ -168,12 +168,21 @@
 			'/for': '}',
 			foreach: function (parameters) {
 				parameters = parameters[0].split('as');
-				return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
+
+				var callbackFunctionParameters = parameters[1].trim();
+
+				if (parameters[1].split(',').length === 1) {
+					callbackFunctionParameters = 'key, ' + callbackFunctionParameters;
+				}
+
+				return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + callbackFunctionParameters + ') {';
 			},
 			'/foreach': '});',
 			if: 'if (#0) {',
 			'/if': '}',
 			js: '#0;',
+			returnFalseIf: 'if (#0) return false;',
+			returnIf: 'if (#0) return;',
 			var: 'var #0;',
 			while: 'while (#0) {',
 			'/while': '}'
@@ -562,7 +571,7 @@
 			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 		}
 
-		return renderingInstances[id];
+		return renderingInstances[id] || null;
 	}
 
 
@@ -986,9 +995,13 @@
 	}
 
 	function redrawInstance(instanceId) {
-		var
-			renderingInstance = getRenderingInstance(instanceId),
-			targetElement = document.querySelector(renderingInstance.el);
+		var renderingInstance = getRenderingInstance(instanceId, false);
+
+		if ( ! renderingInstance) {
+			return;
+		}
+
+		var	targetElement = document.querySelector(renderingInstance.el);
 
 		if ( ! targetElement) {
 			return;
