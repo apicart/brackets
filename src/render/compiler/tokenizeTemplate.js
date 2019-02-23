@@ -1,10 +1,13 @@
 import {each} from '../../shared/utils';
-import {macrosRegularExpression} from '../runtime/macros';
+import {macrosRegularExpression} from "../runtime/macros";
 
 
 var
-	tokenReplacement = '}}{{',
-	textRegularExpression = /{{((?:.|\n)*?)}}/;
+	openingDelimiter,
+	closingDelimiter,
+
+	tokenReplacement,
+	textRegularExpression;
 
 /**
  * @param {string} template
@@ -39,7 +42,7 @@ export function tokenizeTemplate(template) {
 			template = template.replace(tokenFullMatch, tokenReplacement);
 		}
 
-		template = '{{' + template + '}}';
+		template = openingDelimiter + template + closingDelimiter;
 
 		/* eslint-disable-next-line no-cond-assign*/
 		while (token = textRegularExpression.exec(template)) {
@@ -52,4 +55,15 @@ export function tokenizeTemplate(template) {
 		macros: macroTokens,
 		text: textTokens
 	};
+}
+
+
+/**
+ * @param {{}} config
+ */
+export function initTemplateTokenizer(config) {
+	openingDelimiter = config.delimiters[0];
+	closingDelimiter = config.delimiters[1];
+	textRegularExpression = new RegExp(openingDelimiter + '((?:.|\n)*?)' + closingDelimiter);
+	tokenReplacement = closingDelimiter + openingDelimiter;
 }
