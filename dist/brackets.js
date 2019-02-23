@@ -8,47 +8,62 @@
 	factory();
 }(function () { 'use strict';
 
-	var Brackets = {
-		devMode: false
-	};
+	var utils = {};
 
-	var eventHandlersAttributeName = 'b-on';
-	var nonInitializedElementAttributeName = 'b-init';
-	var selectorAttributeName = 'data-b-instance';
-
-	var templateLiteralsEnabled = (function () {
-		try {
-			eval('`x`');
-			return true;
-		}
-		catch (e) {
-			return false;
-		}
-	})();
-
-
-	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 
 	/**
 	 * @param {{}} obj
 	 * @return {{}}
 	 */
-	function cloneObject(obj) {
+	utils.cloneObject = function (obj) {
 		var newObject = {};
 
 		Object.keys(obj).forEach(function (key) {
-			newObject[key] = obj && typeof obj === Object(obj) ? cloneObject(obj[key]) : obj[key];
+			newObject[key] = obj && typeof obj === Object(obj) ? utils.cloneObject(obj[key]) : obj[key];
 		});
 
 		return newObject;
-	}
+	};
+
+
+	/**
+	 * @returns {{}}
+	 */
+	utils.mergeObjects = function () {
+		var
+			newObject = {},
+			iterable = Array.prototype.slice.call(arguments);
+
+		utils.each(iterable, function (objectKey, object) {
+			utils.each(object, function (key, value) {
+				newObject[key] = ! (key in newObject) || ! utils.isObject(value)
+					? value
+					: utils.mergeObjects(newObject[key], value);
+			});
+		});
+
+		return newObject;
+	};
+
+
+	/**
+	 * @param {*} data
+	 * @returns {boolean}
+	 */
+	utils.isObject = function (data) {
+		if (typeof data === 'undefined' || data === null || Array.isArray(data)) {
+			return false;
+		}
+
+		return typeof data === 'object';
+	};
 
 
 	/**
 	 * @param {{}|[]} iterable
 	 * @param {function} callback
 	 */
-	function each(iterable, callback) {
+	utils.each = function (iterable, callback) {
 		var
 			iterator,
 			iteratorObject = {
@@ -64,7 +79,7 @@
 					return this.counter === 1;
 				},
 				isLast: function () {
-					return this.counter === iterableLength;
+					return this.counter === this.iterableLength;
 				}
 			},
 			iterableLength,
@@ -114,55 +129,57 @@
 				}
 			}
 		}
-	}
+	};
 
 
 	/**
 	 * @param {number} length
 	 * @returns {string}
 	 */
-	function generateHash(length) {
+	utils.generateHash = function (length) {
 		length = length || 10;
 		length += 2;
 		return Math.random().toString(36).substring(2, length);
-	}
-
-	var macros = {
-		break: 'break;',
-		breakIf: 'if (#0) break;',
-		continue: 'continue;',
-		continueIf: 'if (#0) continue;',
-		component: function (parameters) {
-			var
-				parametersToArray = parameters[0].split(','),
-				componentName = parametersToArray[0],
-				componentData;
-
-			parametersToArray.shift();
-			componentData = '{' + parametersToArray.join(',') + '}';
-
-			return '_template += _runtime.components.renderToString.call('
-					+ '_runtime, \'' + componentName + '\', ' + componentData
-				+ ');';
-		},
-		dump: 'console.log(#0);',
-		else: '} else {',
-		elseif: '} else if (#0) {',
-		for: 'for (var #0) {',
-		'/for': '}',
-		foreach: function (parameters) {
-			parameters = parameters[0].split('as');
-			return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
-		},
-		'/foreach': '});',
-		if: 'if (#0) {',
-		'/if': '}',
-		js: '#0;',
-		var: 'var #0;',
-		while: 'while (#0) {',
-		'/while': '}'
 	};
 
+	var
+		macros = {
+			break: 'break;',
+			breakIf: 'if (#0) break;',
+			continue: 'continue;',
+			continueIf: 'if (#0) continue;',
+			component: function (parameters) {
+				var
+					parametersToArray = parameters[0].split(','),
+					componentName = parametersToArray[0],
+					componentData;
+
+				parametersToArray.shift();
+				componentData = '{' + parametersToArray.join(',') + '}';
+
+				return '_template += _runtime.components.renderToString.call('
+						+ '_runtime, \'' + componentName + '\', ' + componentData
+					+ ');';
+			},
+			dump: 'console.log(#0);',
+			else: '} else {',
+			elseif: '} else if (#0) {',
+			for: 'for (var #0) {',
+			'/for': '}',
+			foreach: function (parameters) {
+				parameters = parameters[0].split('as');
+				return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + parameters[1].trim() + ') {';
+			},
+			'/foreach': '});',
+			if: 'if (#0) {',
+			'/if': '}',
+			js: '#0;',
+			var: 'var #0;',
+			while: 'while (#0) {',
+			'/while': '}'
+		},
+		openingDelimiter,
+		closingDelimiter;
 
 	var macrosRegularExpression;
 
@@ -192,18 +209,28 @@
 
 
 	function generateMacrosRegularExpression() {
+		// First part matches macros, second part after | matches variables
 		macrosRegularExpression = new RegExp(
-			/* eslint-disable-next-line no-useless-escape */
-			'{{(?:(?:(' + Object.keys(macros).join('|').replace('/', '\/') + ')(?: (.*?))?)|(?:(\\$.*?)))}}'
+			openingDelimiter
+				/* eslint-disable-next-line no-useless-escape */
+				+ ' *(?:(?:(' + Object.keys(macros).join('|').replace('/', '\/') + ')(?: (.*?))?) *| *(?:(\\$.*?))) *'
+			+ closingDelimiter
 		);
 	}
 
 
-	generateMacrosRegularExpression();
+	function initMacros(config) {
+		openingDelimiter = config.delimiters[0];
+		closingDelimiter = config.delimiters[1];
+		generateMacrosRegularExpression();
+	}
 
 	var
-		tokenReplacement = '}}{{',
-		textRegularExpression = /{{((?:.|\n)*?)}}/;
+		openingDelimiter$1,
+		closingDelimiter$1,
+
+		tokenReplacement,
+		textRegularExpression;
 
 	/**
 	 * @param {string} template
@@ -224,7 +251,7 @@
 				tokenFullMatch = token[0];
 				token.shift();
 
-				each(token, function (tokenPartKey, tokenPart) {
+				utils.each(token, function (tokenPartKey, tokenPart) {
 					if (isNaN(parseInt(tokenPartKey))) {
 						return;
 					}
@@ -238,7 +265,7 @@
 				template = template.replace(tokenFullMatch, tokenReplacement);
 			}
 
-			template = '{{' + template + '}}';
+			template = openingDelimiter$1 + template + closingDelimiter$1;
 
 			/* eslint-disable-next-line no-cond-assign*/
 			while (token = textRegularExpression.exec(template)) {
@@ -252,6 +279,51 @@
 			text: textTokens
 		};
 	}
+
+
+	/**
+	 * @param {{}} config
+	 */
+	function initTemplateTokenizer(config) {
+		openingDelimiter$1 = config.delimiters[0];
+		closingDelimiter$1 = config.delimiters[1];
+		textRegularExpression = new RegExp(openingDelimiter$1 + '((?:.|\n)*?)' + closingDelimiter$1);
+		tokenReplacement = closingDelimiter$1 + openingDelimiter$1;
+	}
+
+	var Brackets = {
+		config: {
+			devMode: false,
+			delimiters: ['{{', '}}']
+		},
+		configure: function (configuration) {
+			if (configuration) {
+				this.config = utils.mergeObjects(this.config, configuration);
+			}
+
+			initTemplateTokenizer(this.config);
+			initMacros(this.config);
+
+			return this;
+		}
+	};
+
+	var eventHandlersAttributeName = 'b-on';
+	var nonInitializedElementAttributeName = 'b-init';
+	var selectorAttributeName = 'data-b-instance';
+
+	var templateLiteralsEnabled = (function () {
+		try {
+			eval('`x`');
+			return true;
+		}
+		catch (e) {
+			return false;
+		}
+	})();
+
+
+	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 
 	/**
 	 * @param {[]} tokenMatchArray
@@ -270,7 +342,7 @@
 		tokenFullMatchArray.shift();
 
 		if (tokenFullMatchArray.length) {
-			each(tokenFullMatchArray, function (key, filter) {
+			utils.each(tokenFullMatchArray, function (key, filter) {
 				filterArray = filter.split(':');
 				filterName = filterArray[0] || null;
 
@@ -287,7 +359,7 @@
 		}
 
 		if (applyEscapeFilter) {
-			variable = '_templateAdd(' + variable + ');';
+			variable = '_templateAdd(' + variable + ')';
 		}
 
 		return '_template += ' + variable + ';';
@@ -308,7 +380,7 @@
 		if (typeof macros[macroName] === 'string') {
 			parsedToken = macros[macroName];
 
-			each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {
+			utils.each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {
 				parsedToken = parsedToken.replace(new RegExp('#' + tokenMatchPartKey), tokenMatchPart);
 			});
 
@@ -330,9 +402,9 @@
 		var
 			macroTokenArray,
 			macroTokenFirstPart,
-			templateString = 'var _template = \'\';' + _templateAdd.toString();
+			templateString = 'var _template = \'\';' + _templateAdd.toString() + ';';
 
-		each(tokens.text, function (tokenKey, tokenText) {
+		utils.each(tokens.text, function (tokenKey, tokenText) {
 			templateString += '_template += _templateAdd(' + templateLiteral + tokenText + templateLiteral + ');';
 
 			if (tokenKey in tokens.macros) {
@@ -365,19 +437,8 @@
 	 * @private
 	 */
 	function _templateAdd(data, filter) {
-		if (typeof data === 'undefined') {
-			return '';
-		}
-
-		if ( ! Array.isArray(data)) {
-			data = [data];
-		}
-
-		filter = filter === false ? null : filter;
-		filter = filter === true ? 'escape' : filter;
-
 		/* eslint-disable-next-line no-undef */
-		return filter ? _runtime.getFilter(filter).apply(null, data) : data;
+		return _runtime.templateAdd(data, filter);
 	}
 
 	var filters = {};
@@ -440,7 +501,7 @@
 	 * @param {{}} renderingInstance
 	 */
 	function bindPropertyDescriptors(renderingInstance) {
-		each(renderingInstance.data, function (propertyKey, propertyValue) {
+		utils.each(renderingInstance.data, function (propertyKey, propertyValue) {
 			if (propertyKey in renderingInstance._data) {
 				return;
 			}
@@ -465,6 +526,8 @@
 	var renderingInstances = {};
 	var renderingInstancesStatuses = {
 		bindingEventHandlers: 'bindingEventHandlers',
+		create: 'create',
+		destroy: 'destroy',
 		pending: 'pending',
 		redrawing: 'redrawing',
 		renderingToString: 'renderingToString',
@@ -479,7 +542,7 @@
 
 		var selectedInstances = {};
 
-		each(renderingInstances, function (id, instance) {
+		utils.each(renderingInstances, function (id, instance) {
 			if (instance._type === type) {
 				selectedInstances[id] = instance;
 			}
@@ -509,7 +572,7 @@
 	 * @return {{}}
 	 */
 	function createRenderingInstanceObject(parameters, targetElement) {
-		parameters = cloneObject(parameters);
+		parameters = utils.cloneObject(parameters);
 
 		if (typeof parameters.template === 'function') {
 			parameters.template = parameters.template.call(parameters);
@@ -536,31 +599,26 @@
 					this._redrawingEnabled = true;
 				},
 				cacheKey: parameters.cacheKey || null,
-				data: parameters.data ? cloneObject(parameters.data) : {},
+				data: parameters.data ? utils.cloneObject(parameters.data) : {},
 				methods: parameters.methods || {},
 				onStatusChange: parameters.onStatusChange || function () {},
+				resultCacheEnabled: parameters.resultCacheEnabled || false,
 				template: parameters.template,
 				addData: function (property, value) {
 					this.data[property] = value;
 					bindPropertyDescriptors(this);
 				},
 				_create: function () {
-					if (parameters.onCreate) {
-						parameters.onCreate.call(this);
-					}
-
+					this._setStatus(renderingInstancesStatuses.create);
 					renderingInstances[this.instanceId] = this;
 					return this;
 				},
 				_data: {},
 				_destroy: function () {
-					if (parameters.onDestroy) {
-						parameters.onDestroy.call(this);
-					}
-
+					this._setStatus(renderingInstancesStatuses.destroy);
 					delete renderingInstances[this.instanceId];
 				},
-				_hash: generateHash(),
+				_hash: utils.generateHash(),
 				_type: parameters._type || 'view',
 				_parent: null,
 				_redrawingEnabled: true,
@@ -626,7 +684,7 @@
 	function renderComponent(name, componentDataFromTemplate) {
 		var componentRenderingInstance = getComponent(name);
 		if (componentDataFromTemplate) {
-			each(componentDataFromTemplate, function (key, value) {
+			utils.each(componentDataFromTemplate, function (key, value) {
 				componentRenderingInstance.addData(key, value);
 			});
 		}
@@ -677,7 +735,7 @@
 			return null;
 		}
 
-		return createRenderingInstanceObject(cloneObject(components.register[name]));
+		return createRenderingInstanceObject(utils.cloneObject(components.register[name]));
 	}
 
 
@@ -685,7 +743,69 @@
 		return components;
 	}
 
-	var templatesCache = {};
+	var cacheManager = {
+		cache: {}
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @returns {*}
+	 */
+	cacheManager.getCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
+			return null;
+		}
+
+		return cacheManager.cache[region][cacheKey];
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @param {*} cache
+	 * @returns {{cache: {}}}
+	 */
+	cacheManager.setCache = function (region, cacheKey, cache) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
+			cacheManager.cache[region] = {};
+		}
+
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
+			cacheManager.cache[region][cacheKey] = cache;
+		}
+
+		return cacheManager;
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @returns {boolean}
+	 */
+	cacheManager.hasCacheRegion = function (region) {
+		return region in cacheManager.cache;
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @returns {boolean}
+	 */
+	cacheManager.hasCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
+			return false;
+		}
+
+		return cacheKey in cacheManager.cache[region];
+	};
+
+	var
+		TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
+		TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
 
 
 	/**
@@ -695,46 +815,81 @@
 	function renderToString(renderingInstance) {
 		renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
 
+		var templateObject = {
+			templateString: renderingInstance.resultCacheEnabled
+				? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
+				: null,
+			templateRuntime: null
+		};
+
+		if ( ! templateObject.templateString) {
+			templateObject = generateTemplateString(renderingInstance);
+		}
+
+		renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
+
+		return {
+			templateString: templateObject.templateString,
+			templateRuntime: templateObject.templateRuntime
+		};
+	}
+
+
+	/**
+	 * @param renderingInstance
+	 * @returns {{}}
+	 */
+	function generateTemplateString(renderingInstance) {
 		var
-			cacheKey = renderingInstance.cacheKey,
-			cacheKeyIsSet = typeof cacheKey === 'string',
-			compiledTemplate,
+			cacheKeyIsSet = typeof renderingInstance.cacheKey === 'string',
+			templateFunction = cacheKeyIsSet
+				? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey)
+				: null,
 			data = renderingInstance.data,
 			runtime = {
 				parentInstance: renderingInstance.instanceId,
 				components: getComponents(),
 				getFilter: getFilter,
 				renderedComponents: [],
-				utils: {
-					each: each
+				utils: utils,
+				templateAdd: function (data, filter) {
+					if (typeof data === 'undefined') {
+						return '';
+					}
+
+					if ( ! Array.isArray(data)) {
+						data = [data];
+					}
+
+					filter = filter === false ? null : filter;
+					filter = filter === true ? 'escape' : filter;
+
+					return filter ? this.getFilter(filter).apply(null, data) : data;
 				}
 			},
 			template = renderingInstance.template,
 			templateArguments = [runtime],
 			templateParametersNames = ['_runtime'];
 
-		if (cacheKeyIsSet && cacheKey in templatesCache) {
-			compiledTemplate = templatesCache[cacheKey];
-
-		} else {
+		if ( ! templateFunction) {
 			if ( ! templateLiteralsEnabled) {
 				template = template.replace(/(?:\r\n|\r|\n)/g, ' ');
 				template = template.replace(/'/g, '\'');
 			}
 
 			var tokens = tokenizeTemplate(template);
-			compiledTemplate = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
+			templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
 
-			if (cacheKeyIsSet && ! (cacheKey in templatesCache)) {
-				templatesCache[cacheKey] = compiledTemplate;
+			if (cacheKeyIsSet) {
+				cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey, templateFunction);
 			}
 		}
 
-		each(data, function (key, value) {
+		utils.each(data, function (key, value) {
 			templateArguments.push(value);
 		});
 
-		var templateString = compiledTemplate.apply(null, templateArguments);
+		var templateString = templateFunction.apply(null, templateArguments);
 
 		if (renderingInstance._type === 'component') {
 			templateString = templateString.replace(
@@ -750,7 +905,9 @@
 			}
 		}
 
-		renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
+		if (renderingInstance.resultCacheEnabled) {
+			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, templateString);
+		}
 
 		return {
 			templateString: templateString,
@@ -777,7 +934,7 @@
 			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 			eventHandlers = [];
 
-		each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
+		utils.each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
 			eventHandlers.push(childrenElement);
 		});
 
@@ -785,10 +942,10 @@
 			eventHandlers.push(element);
 		}
 
-		each(eventHandlers, function (key, eventHandler) {
+		utils.each(eventHandlers, function (key, eventHandler) {
 			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
 
-			each(events, function (key, event) {
+			utils.each(events, function (key, event) {
 				(function (eventHandler, event) {
 					event = event.trim();
 
@@ -824,7 +981,7 @@
 				})(eventHandler, event);
 			});
 
-			if ( ! Brackets.devMode) {
+			if ( ! Brackets.config.devMode) {
 				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
 			}
 		});
@@ -841,9 +998,8 @@
 
 		renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 
-		each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
-			var instanceId = instanceElement.getAttribute(selectorAttributeName);
-			getRenderingInstance(instanceId)._destroy();
+		utils.each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
+			getRenderingInstance(instanceElement.getAttribute(selectorAttributeName))._destroy();
 		});
 
 		renderingInstance.beforeRender(targetElement);
@@ -860,15 +1016,17 @@
 
 		targetElement.innerHTML = templateObject.templateString;
 
-		each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
-			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
+		if (templateObject.templateRuntime) {
+			utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
+				var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
 
-			bindEventHandlers(componentRenderingInstance);
+				bindEventHandlers(componentRenderingInstance);
 
-			if (typeof componentRenderingInstance.afterRender === 'function') {
-				componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
-			}
-		});
+				if (typeof componentRenderingInstance.afterRender === 'function') {
+					componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
+				}
+			});
+		}
 
 		bindEventHandlers(renderingInstance);
 		targetElement.removeAttribute(nonInitializedElementAttributeName);
@@ -895,17 +1053,26 @@
 			throw new Error('Brackets: unsupported type for parameter el.');
 		}
 
+		if (targetElements.length > 1 && parameters.cacheKey && ! parameters.template) {
+			throw new Error(
+				'Brackets: you must provide a single template for \''
+				+ parameters.cacheKey + '\' cacheKey because multiple target elements were found.'
+			);
+		}
+
 		if ( ! targetElements) {
 			return;
 		}
 
-		each(targetElements, function (key, targetElement) {
+		utils.each(targetElements, function (key, targetElement) {
 			redrawInstance(createRenderingInstanceObject(parameters, targetElement).instanceId);
 		});
 
 		return Brackets;
 	}
 
+	Brackets.utils = utils;
+	Brackets.cacheManager = cacheManager;
 	Brackets.templateLiteral = templateLiteral;
 
 	Brackets.addFilter = addFilter;
@@ -920,6 +1087,7 @@
 
 	Brackets.getRenderingInstance = getRenderingInstance;
 	Brackets.getRenderingInstances = getRenderingInstances;
+	Brackets.renderingInstancesStatuses = renderingInstancesStatuses;
 
 	Brackets.render = render;
 
@@ -931,6 +1099,7 @@
 		return renderToString(createRenderingInstanceObject(parameters));
 	};
 
+	Brackets.configure();
 
 	if (typeof window !== 'undefined' && typeof window.Brackets === 'undefined') {
 		window.Brackets = Brackets;
