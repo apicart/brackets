@@ -42,7 +42,7 @@ export function getRenderingInstance(id, required) {
 		throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 	}
 
-	return renderingInstances[id];
+	return renderingInstances[id] || null;
 }
 
 
