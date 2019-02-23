@@ -1,6 +1,6 @@
 import {Brackets} from '../../shared/variables';
 import {utils} from '../../shared/utils';
-import {createRenderingInstanceObject} from './renderingInstances';
+import {createRenderingInstanceObject, renderingInstancesStatuses} from './renderingInstances';
 import {renderToString} from '../renderToString';
 
 
@@ -23,6 +23,7 @@ export function renderComponent(name, componentDataFromTemplate) {
 		});
 	}
 
+	componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 	componentRenderingInstance.beforeRender();
 	componentRenderingInstance._parent = this.parentInstance;
 
