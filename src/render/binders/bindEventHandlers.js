@@ -1,5 +1,5 @@
 import {Brackets, eventHandlersAttributeName} from '../../shared/variables';
-import {each} from '../../shared/utils';
+import {utils} from '../../shared/utils';
 import {renderingInstancesStatuses} from '../runtime/renderingInstances';
 
 
@@ -22,7 +22,7 @@ export function bindEventHandlers(renderingInstance) {
 		eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 		eventHandlers = [];
 
-	each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
+	utils.each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
 		eventHandlers.push(childrenElement);
 	});
 
@@ -30,10 +30,10 @@ export function bindEventHandlers(renderingInstance) {
 		eventHandlers.push(element);
 	}
 
-	each(eventHandlers, function (key, eventHandler) {
+	utils.each(eventHandlers, function (key, eventHandler) {
 		var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
 
-		each(events, function (key, event) {
+		utils.each(events, function (key, event) {
 			(function (eventHandler, event) {
 				event = event.trim();
 
@@ -69,7 +69,7 @@ export function bindEventHandlers(renderingInstance) {
 			})(eventHandler, event);
 		});
 
-		if ( ! Brackets.devMode) {
+		if ( ! Brackets.config.devMode) {
 			eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
 		}
 	});
