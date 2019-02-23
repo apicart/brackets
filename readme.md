@@ -19,7 +19,7 @@
 </h1>
 
 - Small, flexible, easy to use, component-oriented javascript template engine.
-- ✅ **10 Kb minified (5 Kb Gzipped)**
+- ✅ **14 Kb minified (6 Kb Gzipped)**
 - ✅ Supports IE 10 +
 - ✅ [TRY IT ON CODEPEN](https://codepen.io/apicart/pen/OraYJj)
 
@@ -82,8 +82,8 @@ I ❤️ Brackets!
 
 ## Cache
 Cache speed's up the rendering process. There are two types of cache. Functions cache and results cache.
-- Results cache: Caches the whole content of the rendered instance. This cache is good for templates where the variables are not changed. You can enable it by setting the `resultCacheEnabled` to true.
-- Functions cache: Caches only the generated template function not the result of the rendering process. Is good for templates that are used multiple times and its variables needs to be changed dynamically. You can enable it by adding the template `cacheKey` name.
+- **Results cache**: Caches the whole content of the rendered instance. This cache is good for templates where the variables are not changed. You can enable it by setting the `resultCacheEnabled` to true.
+- **Functions cache**: Caches only the generated template function not the result of the rendering process. Is good for templates that are used multiple times and its variables needs to be changed dynamically. You can enable it by adding the template `cacheKey` name.
 
 ```html
 <div id="app">
@@ -447,10 +447,11 @@ Brackets.render({
 	addData: <function|null>,
 	cacheKey: <string|null>,
 	data: <object|null>,
-	el: <string|Element|NodeList>,
+	el: <string|Element|NodeList|function>,
 	instanceId <string|null>,
 	methods: <object|null>,
 	onStatusChange: <function|null>,
+	resultCacheEnabled: <function|null>,
 	template: <string|null>
 })
 ```
@@ -523,6 +524,7 @@ Brackets.render({
 	instanceId <string|null>,
 	methods: <object|null>,
 	onStatusChange: <function|null>,
+	resultCacheEnabled: <function|null>,
 	template: <string>
 })
 ```
