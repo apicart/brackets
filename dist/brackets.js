@@ -689,6 +689,7 @@
 			});
 		}
 
+		componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 		componentRenderingInstance.beforeRender();
 		componentRenderingInstance._parent = this.parentInstance;
 
@@ -815,23 +816,17 @@
 	function renderToString(renderingInstance) {
 		renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
 
-		var templateObject = {
-			templateString: renderingInstance.resultCacheEnabled
-				? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
-				: null,
-			templateRuntime: null
-		};
+		var templateObject = renderingInstance.resultCacheEnabled
+			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
+			: null;
 
-		if ( ! templateObject.templateString) {
+		if ( ! templateObject) {
 			templateObject = generateTemplateString(renderingInstance);
 		}
 
 		renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
 
-		return {
-			templateString: templateObject.templateString,
-			templateRuntime: templateObject.templateRuntime
-		};
+		return templateObject;
 	}
 
 
@@ -906,7 +901,10 @@
 		}
 
 		if (renderingInstance.resultCacheEnabled) {
-			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, templateString);
+			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, {
+				templateString: templateString,
+				templateRuntime: runtime
+			});
 		}
 
 		return {
@@ -1016,17 +1014,16 @@
 
 		targetElement.innerHTML = templateObject.templateString;
 
-		if (templateObject.templateRuntime) {
-			utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
-				var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
+		utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
+			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
+			bindEventHandlers(componentRenderingInstance);
 
-				bindEventHandlers(componentRenderingInstance);
+			if (typeof componentRenderingInstance.afterRender === 'function') {
+				componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
+			}
 
-				if (typeof componentRenderingInstance.afterRender === 'function') {
-					componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
-				}
-			});
-		}
+			componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
+		});
 
 		bindEventHandlers(renderingInstance);
 		targetElement.removeAttribute(nonInitializedElementAttributeName);
