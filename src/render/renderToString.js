@@ -5,9 +5,12 @@ import {compileTemplate} from './compiler/compileTemplate';
 import {getFilter} from './runtime/filters';
 import {getComponents} from './runtime/components';
 import {renderingInstancesStatuses} from './runtime/renderingInstances';
+import {cacheManager} from "./cacheManager";
 
 
-var templatesCache = {};
+var
+	TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
+	TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
 
 
 /**
@@ -17,10 +20,36 @@ var templatesCache = {};
 export function renderToString(renderingInstance) {
 	renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
 
+	var templateObject = {
+		templateString: renderingInstance.resultCacheEnabled
+			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
+			: null,
+		templateRuntime: null
+	};
+
+	if ( ! templateObject.templateString) {
+		templateObject = generateTemplateString(renderingInstance);
+	}
+
+	renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
+
+	return {
+		templateString: templateObject.templateString,
+		templateRuntime: templateObject.templateRuntime
+	};
+}
+
+
+/**
+ * @param renderingInstance
+ * @returns {{}}
+ */
+function generateTemplateString(renderingInstance) {
 	var
-		cacheKey = renderingInstance.cacheKey,
-		cacheKeyIsSet = typeof cacheKey === 'string',
-		compiledTemplate,
+		cacheKeyIsSet = typeof renderingInstance.cacheKey === 'string',
+		templateFunction = cacheKeyIsSet
+			? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey)
+			: null,
 		data = renderingInstance.data,
 		runtime = {
 			parentInstance: renderingInstance.instanceId,
@@ -29,26 +58,37 @@ export function renderToString(renderingInstance) {
 			renderedComponents: [],
 			utils: {
 				each: each
+			},
+			templateAdd: function (data, filter) {
+				if (typeof data === 'undefined') {
+					return '';
+				}
+
+				if ( ! Array.isArray(data)) {
+					data = [data];
+				}
+
+				filter = filter === false ? null : filter;
+				filter = filter === true ? 'escape' : filter;
+
+				return filter ? this.getFilter(filter).apply(null, data) : data;
 			}
 		},
 		template = renderingInstance.template,
 		templateArguments = [runtime],
 		templateParametersNames = ['_runtime'];
 
-	if (cacheKeyIsSet && cacheKey in templatesCache) {
-		compiledTemplate = templatesCache[cacheKey];
-
-	} else {
+	if ( ! templateFunction) {
 		if ( ! templateLiteralsEnabled) {
 			template = template.replace(/(?:\r\n|\r|\n)/g, ' ');
 			template = template.replace(/'/g, '\'');
 		}
 
 		var tokens = tokenizeTemplate(template);
-		compiledTemplate = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
+		templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
 
-		if (cacheKeyIsSet && ! (cacheKey in templatesCache)) {
-			templatesCache[cacheKey] = compiledTemplate;
+		if (cacheKeyIsSet) {
+			cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey, templateFunction);
 		}
 	}
 
@@ -56,7 +96,7 @@ export function renderToString(renderingInstance) {
 		templateArguments.push(value);
 	});
 
-	var templateString = compiledTemplate.apply(null, templateArguments);
+	var templateString = templateFunction.apply(null, templateArguments);
 
 	if (renderingInstance._type === 'component') {
 		templateString = templateString.replace(
@@ -72,7 +112,9 @@ export function renderToString(renderingInstance) {
 		}
 	}
 
-	renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
+	if (renderingInstance.resultCacheEnabled) {
+		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, templateString);
+	}
 
 	return {
 		templateString: templateString,
