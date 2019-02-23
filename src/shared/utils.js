@@ -1,23 +1,59 @@
+export var utils = {};
+
+
 /**
  * @param {{}} obj
  * @return {{}}
  */
-export function cloneObject(obj) {
+utils.cloneObject = function (obj) {
 	var newObject = {};
 
 	Object.keys(obj).forEach(function (key) {
-		newObject[key] = obj && typeof obj === Object(obj) ? cloneObject(obj[key]) : obj[key];
+		newObject[key] = obj && typeof obj === Object(obj) ? utils.cloneObject(obj[key]) : obj[key];
 	});
 
 	return newObject;
-}
+};
+
+
+/**
+ * @returns {{}}
+ */
+utils.mergeObjects = function () {
+	var
+		newObject = {},
+		iterable = Array.prototype.slice.call(arguments);
+
+	utils.each(iterable, function (objectKey, object) {
+		utils.each(object, function (key, value) {
+			newObject[key] = ! (key in newObject) || ! utils.isObject(value)
+				? value
+				: utils.mergeObjects(newObject[key], value);
+		});
+	});
+
+	return newObject
+};
+
+
+/**
+ * @param {*} data
+ * @returns {boolean}
+ */
+utils.isObject = function (data) {
+	if (typeof data === 'undefined' || data === null || Array.isArray(data)) {
+		return false;
+	}
+
+	return typeof data === 'object';
+};
 
 
 /**
  * @param {{}|[]} iterable
  * @param {function} callback
  */
-export function each(iterable, callback) {
+utils.each = function (iterable, callback) {
 	var
 		iterator,
 		iteratorObject = {
@@ -33,7 +69,7 @@ export function each(iterable, callback) {
 				return this.counter === 1;
 			},
 			isLast: function () {
-				return this.counter === iterableLength;
+				return this.counter === this.iterableLength;
 			}
 		},
 		iterableLength,
@@ -83,15 +119,15 @@ export function each(iterable, callback) {
 			}
 		}
 	}
-}
+};
 
 
 /**
  * @param {number} length
  * @returns {string}
  */
-export function generateHash(length) {
+utils.generateHash = function (length) {
 	length = length || 10;
 	length += 2;
 	return Math.random().toString(36).substring(2, length);
-}
+};
