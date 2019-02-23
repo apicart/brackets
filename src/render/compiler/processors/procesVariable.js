@@ -1,4 +1,4 @@
-import {each} from '../../../shared/utils';
+import {utils} from '../../../shared/utils';
 
 
 /**
@@ -18,7 +18,7 @@ export function processVariable(tokenMatchArray) {
 	tokenFullMatchArray.shift();
 
 	if (tokenFullMatchArray.length) {
-		each(tokenFullMatchArray, function (key, filter) {
+		utils.each(tokenFullMatchArray, function (key, filter) {
 			filterArray = filter.split(':');
 			filterName = filterArray[0] || null;
 
@@ -35,7 +35,7 @@ export function processVariable(tokenMatchArray) {
 	}
 
 	if (applyEscapeFilter) {
-		variable = '_templateAdd(' + variable + ');';
+		variable = '_templateAdd(' + variable + ')';
 	}
 
 	return '_template += ' + variable + ';';
