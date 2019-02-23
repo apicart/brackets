@@ -6,9 +6,13 @@ import {nonInitializedElementAttributeName, selectorAttributeName} from '../shar
 
 
 export function redrawInstance(instanceId) {
-	var
-		renderingInstance = getRenderingInstance(instanceId),
-		targetElement = document.querySelector(renderingInstance.el);
+	var renderingInstance = getRenderingInstance(instanceId, false);
+
+	if ( ! renderingInstance) {
+		return;
+	}
+
+	var	targetElement = document.querySelector(renderingInstance.el);
 
 	if ( ! targetElement) {
 		return;
