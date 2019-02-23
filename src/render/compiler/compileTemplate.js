@@ -16,7 +16,7 @@ export function compileTemplate(tokens, templateParametersNames) {
 	var
 		macroTokenArray,
 		macroTokenFirstPart,
-		templateString = 'var _template = \'\';' + _templateAdd.toString();
+		templateString = 'var _template = \'\';' + _templateAdd.toString() + ';';
 
 	each(tokens.text, function (tokenKey, tokenText) {
 		templateString += '_template += _templateAdd(' + templateLiteral + tokenText + templateLiteral + ');';
@@ -51,17 +51,5 @@ export function compileTemplate(tokens, templateParametersNames) {
  * @private
  */
 function _templateAdd(data, filter) {
-	if (typeof data === 'undefined') {
-		return '';
-	}
-
-	if ( ! Array.isArray(data)) {
-		data = [data];
-	}
-
-	filter = filter === false ? null : filter;
-	filter = filter === true ? 'escape' : filter;
-
-	/* eslint-disable-next-line no-undef */
-	return filter ? _runtime.getFilter(filter).apply(null, data) : data;
+	return _runtime.templateAdd(data, filter);
 }
