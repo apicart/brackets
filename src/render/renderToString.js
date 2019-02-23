@@ -20,23 +20,17 @@ var
 export function renderToString(renderingInstance) {
 	renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
 
-	var templateObject = {
-		templateString: renderingInstance.resultCacheEnabled
-			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
-			: null,
-		templateRuntime: null
-	};
+	var templateObject = renderingInstance.resultCacheEnabled
+		? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
+		: null;
 
-	if ( ! templateObject.templateString) {
+	if ( ! templateObject) {
 		templateObject = generateTemplateString(renderingInstance);
 	}
 
 	renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
 
-	return {
-		templateString: templateObject.templateString,
-		templateRuntime: templateObject.templateRuntime
-	};
+	return templateObject;
 }
 
 
@@ -111,7 +105,10 @@ function generateTemplateString(renderingInstance) {
 	}
 
 	if (renderingInstance.resultCacheEnabled) {
-		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, templateString);
+		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, {
+			templateString: templateString,
+			templateRuntime: runtime
+		});
 	}
 
 	return {
