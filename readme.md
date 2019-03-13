@@ -515,7 +515,7 @@ Brackets
 
 ### Complete Components Configuration
 ```javascript
-Brackets.render({
+Brackets.addComponent({
 	afterRender: <function|null>,
 	beforeRender: <function|null>,
 	addData: <function|null>,
