@@ -48,7 +48,7 @@ Brackets are under development and therefore they are not yet available on npm. 
 <script src="https://cdn.jsdelivr.net/gh/apicart/brackets/dist/brackets.min.js"></script>
 
 <!-- v1.0.0-alpha1 from jsdelivr.net -->
-<script src="https://cdn.jsdelivr.net/npm/@apicart/brackets@1.0.0-alpha1/dist/brackets.min.js" integrity="sha256-TxTeKLp4t4vZVi131XgcBwX9LJfTg1N9zlMxPE2XE0o=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@apicart/brackets@1.0.0-alpha2/dist/brackets.min.js" integrity="sha256-TxTeKLp4t4vZVi131XgcBwX9LJfTg1N9zlMxPE2XE0o=" crossorigin="anonymous"></script>
 ```
 
 **Npm & Yarn**
