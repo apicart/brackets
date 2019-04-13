@@ -154,7 +154,7 @@ Brackets.render({
 		text: "I ❤️ Brackets!"
 	},
 	template: function () {
-		return this.version === 'a' ? '#templateA' : '#templateB';
+		return this.data.version === 'a' ? '#templateA' : '#templateB';
 	}
 });
 </script>
