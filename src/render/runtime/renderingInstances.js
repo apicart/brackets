@@ -1,6 +1,7 @@
 import {utils} from '../../shared/utils';
 import {selectorAttributeName} from '../../shared/variables';
 import {bindPropertyDescriptors} from '../binders/bindPropertyDescriptiors';
+import {bindEventHandlers} from '../binders/bindEventHandlers';
 
 
 export var renderingInstances = {};
@@ -38,6 +39,10 @@ export function getRenderingInstances(type) {
  * @return {*}
  */
 export function getRenderingInstance(id, required) {
+	if (id === null) {
+		return null;
+	}
+
 	if (required !== false && ! (id in renderingInstances)) {
 		throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 	}
@@ -60,6 +65,13 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 	var
 		instance = {
+			cacheKey: parameters.cacheKey || null,
+			data: parameters.data ? utils.cloneObject(parameters.data) : {},
+			methods: parameters.methods || {},
+			onStatusChange: parameters.onStatusChange || function () {},
+			resultCacheEnabled: parameters.resultCacheEnabled || false,
+			template: parameters.template,
+
 			afterRender: function (targetElement) {
 				if ( ! parameters.afterRender) {
 					return;
@@ -78,39 +90,78 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				parameters.beforeRender.call(this, targetElement);
 				this._redrawingEnabled = true;
 			},
-			cacheKey: parameters.cacheKey || null,
-			data: parameters.data ? utils.cloneObject(parameters.data) : {},
-			methods: parameters.methods || {},
-			onStatusChange: parameters.onStatusChange || function () {},
-			resultCacheEnabled: parameters.resultCacheEnabled || false,
-			template: parameters.template,
 			addData: function (property, value) {
 				this.data[property] = value;
 				bindPropertyDescriptors(this);
+
+				return this;
+			},
+
+			_data: {},
+			_hash: utils.generateHash(),
+			_parentInstanceId: null,
+			_redrawingEnabled: true,
+			_status: renderingInstancesStatuses.pending,
+			_type: parameters._type || 'view',
+
+			_bindEventHandlers: function () {
+				bindEventHandlers(this);
+
+				return this;
 			},
 			_create: function () {
 				this._setStatus(renderingInstancesStatuses.create);
 				renderingInstances[this.instanceId] = this;
+
 				return this;
 			},
-			_data: {},
 			_destroy: function () {
 				this._setStatus(renderingInstancesStatuses.destroy);
 				delete renderingInstances[this.instanceId];
 			},
-			_hash: utils.generateHash(),
-			_type: parameters._type || 'view',
-			_parent: null,
-			_redrawingEnabled: true,
-			_status: renderingInstancesStatuses.pending,
+			_destroyChildrenInstances: function () {
+				utils.each(this._childrenInstancesIds, function (key, childrenInstanceId) {
+					var childrenInstance = getRenderingInstance(childrenInstanceId, false);
+
+					if ( ! childrenInstance) {
+						return;
+					}
+
+					childrenInstance._destroy();
+				});
+
+				this._childrenInstancesIds = [];
+
+				return this;
+			},
+			_initChildrenInstances: function () {
+				utils.each(this._childrenInstancesIds, function (key, childrenInstanceId) {
+					var childrenInstance = getRenderingInstance(childrenInstanceId);
+					childrenInstance._initChildrenInstances();
+					var targetElement = childrenInstance.el;
+
+					childrenInstance._bindEventHandlers();
+
+					if (typeof childrenInstance.afterRender === 'function') {
+						childrenInstance.afterRender.call(childrenInstance, targetElement);
+					}
+
+					childrenInstance._setStatus(renderingInstancesStatuses.redrawingDone);
+				});
+
+				return this;
+			},
 			_setStatus: function (status) {
 				if (this._status === status) {
-					return;
+					return this;
 				}
 
 				this._status = status;
 				this.onStatusChange.call(this, status);
+
+				return this;
 			},
+
 			set instanceId(id) {
 				this._instanceId = id;
 			},
@@ -119,6 +170,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			},
 			get el() {
 				return '[' + selectorAttributeName + '="' + this.instanceId +'"]';
+			},
+			get _parentInstance() {
+				return getRenderingInstance(this._parentInstanceId);
 			}
 		};
 
