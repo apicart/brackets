@@ -64,7 +64,7 @@ rules:
     keyword-spacing: [error]
     linebreak-style: [error, unix]
     line-comment-position: [error, {position: above, applyDefaultIgnorePatterns: false}]
-    lines-around-comment: [error, {beforeBlockComment: true}]
+    lines-around-comment: [warn, {beforeBlockComment: true}]
     max-depth: [error]
     max-len: [error, 120]
     max-nested-callbacks: [error, 4]
