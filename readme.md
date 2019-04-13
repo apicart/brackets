@@ -102,7 +102,7 @@ Brackets.render({
 ```
 
 ## Templates
-The template you want to render can be provided in a multiple ways. In the example above, the template was loaded from the target element `#app`. 
+The template you want to render can be provided in a multiple ways. In the example above, the template was loaded from the target element `#app`.
 
 Another way to provide the template is setting it directly as a text in the template parameter.
 
@@ -161,7 +161,7 @@ Brackets.render({
 ```
 
 ## Events
-During the whole rendering process, there are triggered two events. 
+During the whole rendering process, there are triggered two events.
 - Before render (beforeRender) - this event is triggered before the whole rendering process starts
 - After render (afterRender) - this event is triggered after the rendering process is complete
 
@@ -530,10 +530,10 @@ Brackets.addComponent({
 ```
 
 ## Configuration Reserved Keywords
-This keywords you must not use in the configuration object `_create, _data, _destroy, _instanceId, _hash, _type, _parent, _setStatus, _status`.
+This keywords you must not use in the configuration object `_create, _data, _destroy, _destroyChildrenInstances, _instanceId, _initChildrenInstances, _hash, _type, _parentInstanceId, _parentInstance, _setStatus, _status`.
 
 ## Rendering Instances
-Rendering instances are interactive objects that were used during the rendering process of each template or component. 
+Rendering instances are interactive objects that were used during the rendering process of each template or component.
 Each rendering instance have an `id`. Because there can be multiple instances during the rendering process, you can set `instanceId` parameter. This parameter will be than used as a prefix for the instance so the instance id will be `<your-id>-<unique hash>`. This will help you to find the instance you want to work with.
 
 The following example shows how to work with instances.
@@ -545,7 +545,7 @@ myInstance.addData('key', 'value'); // This will add new data by key into the da
 ```
 
 Instances have also some statuses. You can use string or pass the constant from brackets object `Brackets.renderingInstancesStatuses.<status>`
-	
+
 - **create**: When the instance is succesfully created.
 - **pending**: The default status after creation.
 - **redrawing**: When the instance is being redrawed.
@@ -555,7 +555,7 @@ Instances have also some statuses. You can use string or pass the constant from 
 - **redrawingDone**: When the instance is completely redrawed and ready to use.
 - **destroy**: When the instance is being removed.
 
-The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`. 
+The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`.
 
 You can listen to these changes by providing `onStatusChange` parameter, that must be a function. The rendered instance is passed as `this` parameter and the status parameter is passed as a function argument. The usage is as follows.
 
