@@ -1,8 +1,6 @@
 import {renderToString} from './renderToString';
-import {utils} from '../shared/utils';
 import {getRenderingInstance, renderingInstancesStatuses} from './runtime/renderingInstances';
-import {bindEventHandlers} from './binders/bindEventHandlers';
-import {nonInitializedElementAttributeName, selectorAttributeName} from '../shared/variables';
+import {nonInitializedElementAttributeName} from '../shared/variables';
 
 
 export function redrawInstance(instanceId) {
@@ -19,10 +17,7 @@ export function redrawInstance(instanceId) {
 	}
 
 	renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
-
-	utils.each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
-		getRenderingInstance(instanceElement.getAttribute(selectorAttributeName))._destroy();
-	});
+	renderingInstance._destroyChildrenInstances();
 
 	renderingInstance.beforeRender(targetElement);
 
@@ -38,18 +33,10 @@ export function redrawInstance(instanceId) {
 
 	targetElement.innerHTML = templateObject.templateString;
 
-	utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
-		var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
-		bindEventHandlers(componentRenderingInstance);
+	renderingInstance._childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
+	renderingInstance._initChildrenInstances();
+	renderingInstance._bindEventHandlers();
 
-		if (typeof componentRenderingInstance.afterRender === 'function') {
-			componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
-		}
-
-		componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
-	});
-
-	bindEventHandlers(renderingInstance);
 	targetElement.removeAttribute(nonInitializedElementAttributeName);
 	renderingInstance.afterRender(targetElement);
 	renderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
