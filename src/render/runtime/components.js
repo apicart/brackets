@@ -17,6 +17,7 @@ var components = {
  */
 export function renderComponent(name, componentDataFromTemplate) {
 	var componentRenderingInstance = getComponent(name);
+
 	if (componentDataFromTemplate) {
 		utils.each(componentDataFromTemplate, function (key, value) {
 			componentRenderingInstance.addData(key, value);
@@ -25,14 +26,13 @@ export function renderComponent(name, componentDataFromTemplate) {
 
 	componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 	componentRenderingInstance.beforeRender();
-	componentRenderingInstance._parent = this.parentInstance;
+	componentRenderingInstance._parentInstanceId = this.parentInstance.instanceId;
 
-	var
-		templateObject = renderToString(componentRenderingInstance),
-		renderedComponents =
-			[componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
+	var templateObject = renderToString(componentRenderingInstance);
+	componentRenderingInstance._childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
 
-	this.renderedComponents = this.renderedComponents.concat(renderedComponents);
+	// this = _runtime variable in template rendering process
+	this.renderedComponents = this.renderedComponents.concat([componentRenderingInstance.instanceId]);
 	return templateObject.templateString;
 }
 
