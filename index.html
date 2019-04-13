@@ -2,21 +2,57 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<script src="http://localhost/dist/brackets.dev.js"></script>
+	<script src="http://localhost:82/dist/brackets.dev.js"></script>
 	<title>Brackets playground</title>
 </head>
 <body>
 
-<div id="app">{{$text}}</div>
+<div id="app"></div>
 <script>
-	Brackets
-		.render({
-			el: '#app',
-			data: {
-				text: 'I ❤️ Brackets!'
-			}
-		});
-</script>
+Brackets.addComponent('priceCalculator', {
+	template: '{{if widget.ordersCount < 2}}{{js widget.ordersCount ++}}{{/if}}{{$widget.ordersCount}}',
+	instanceId: 'widget',
+});
+Brackets.render({
+		el: '#app',
+		instanceId: 'app',
+		data: {
+			averageOrderPrice: 0,
+			ordersCount: 0,
 
+			formFields: {
+				'Average order price': {
+					type: 'range',
+					variable: 'averageOrderPrice'
+				},
+				'Orders count': {
+					type: 'range',
+					variable: 'ordersCount'
+				}
+			},
+			outputFields: {
+				'Price': {
+					icon: '',
+					calculate: function (data) {
+
+					}
+				},
+				'Requests Count': {
+					icon: '',
+					calculate: function (data) {
+
+					}
+				},
+				'Your Income': {
+					icon: '',
+					calculate: function (data) {
+
+					}
+				}
+			}
+		},
+		template: '{{component priceCalculator, widget: _runtime.parentInstance.data}}'
+	})
+</script>
 </body>
 </html>

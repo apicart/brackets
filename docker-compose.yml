@@ -7,4 +7,4 @@ services:
         volumes:
             - ./.:/usr/share/nginx/html:delegated
         ports:
-            - 80:80
+            - 82:80

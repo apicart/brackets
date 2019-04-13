@@ -97,6 +97,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				return this;
 			},
 
+			_childrenInstancesIds: [],
 			_data: {},
 			_hash: utils.generateHash(),
 			_parentInstanceId: null,
