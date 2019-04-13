@@ -4,7 +4,7 @@ import {tokenizeTemplate} from './compiler/tokenizeTemplate';
 import {compileTemplate} from './compiler/compileTemplate';
 import {getFilter} from './runtime/filters';
 import {getComponents} from './runtime/components';
-import {renderingInstancesStatuses} from './runtime/renderingInstances';
+import {renderingInstancesStatuses, getRenderingInstance} from './runtime/renderingInstances';
 import {cacheManager} from './cacheManager';
 
 
@@ -46,7 +46,6 @@ function generateTemplateString(renderingInstance) {
 			: null,
 		data = renderingInstance.data,
 		runtime = {
-			parentInstance: renderingInstance.instanceId,
 			components: getComponents(),
 			getFilter: getFilter,
 			renderedComponents: [],
@@ -64,6 +63,9 @@ function generateTemplateString(renderingInstance) {
 				filter = filter === true ? 'escape' : filter;
 
 				return filter ? this.getFilter(filter).apply(null, data) : data;
+			},
+			get parentInstance() {
+				return getRenderingInstance(renderingInstance.instanceId);
 			}
 		},
 		template = renderingInstance.template,
