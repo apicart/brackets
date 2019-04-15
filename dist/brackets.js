@@ -532,6 +532,78 @@
 		});
 	}
 
+	/**
+	 * @param {{}} renderingInstance
+	 * @return {Element}
+	 */
+	function bindEventHandlers(renderingInstance) {
+		renderingInstance._setStatus(renderingInstancesStatuses.bindingEventHandlers);
+
+		var element = document.querySelector(renderingInstance.el);
+
+		if ( ! element) {
+			return;
+		}
+
+		var
+			eventHandlersAttributeSuffix = renderingInstance._type === 'component' ? '-' + renderingInstance._hash : '',
+			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + eventHandlersAttributeSuffix,
+			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
+			eventHandlers = [];
+
+		utils.each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
+			eventHandlers.push(childrenElement);
+		});
+
+		if (element.getAttribute(eventHandlersAttributeNameWithSuffix)) {
+			eventHandlers.push(element);
+		}
+
+		utils.each(eventHandlers, function (key, eventHandler) {
+			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
+
+			utils.each(events, function (key, event) {
+				(function (eventHandler, event) {
+					event = event.trim();
+
+					var
+						eventName = event.match(/^(\S+)/)[1],
+						eventFunction,
+						eventArguments = [];
+
+					event = event.replace(eventName + ' ', '');
+
+					var methodMatch = event.match(/\S+\(.*\)$/);
+
+					if (methodMatch) {
+						var
+							methodMatches = event.match(/^([^(]+)\((.*)\)/),
+							methodName = methodMatches[1],
+							methodArguments = methodMatches[2];
+
+						if ( ! renderingInstance.methods || ! renderingInstance.methods[methodName]) {
+							throw new Error('Brackets: Method "' + methodName + '" is not defined.');
+						}
+
+						eventFunction = renderingInstance.methods[methodName];
+						eventArguments = [methodArguments];
+
+					} else {
+						eventFunction = new Function('data', 'this.' + event + '; return this;');
+					}
+
+					eventHandler.addEventListener(eventName, function (event) {
+						eventFunction.apply(renderingInstance.data, [event].concat(eventArguments));
+					});
+				})(eventHandler, event);
+			});
+
+			if ( ! Brackets.config.devMode) {
+				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
+			}
+		});
+	}
+
 	var renderingInstances = {};
 	var renderingInstancesStatuses = {
 		bindingEventHandlers: 'bindingEventHandlers',
@@ -567,6 +639,10 @@
 	 * @return {*}
 	 */
 	function getRenderingInstance(id, required) {
+		if (id === null) {
+			return null;
+		}
+
 		if (required !== false && ! (id in renderingInstances)) {
 			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
 		}
@@ -589,6 +665,13 @@
 
 		var
 			instance = {
+				cacheKey: parameters.cacheKey || null,
+				data: parameters.data ? utils.cloneObject(parameters.data) : {},
+				methods: parameters.methods || {},
+				onStatusChange: parameters.onStatusChange || function () {},
+				resultCacheEnabled: parameters.resultCacheEnabled || false,
+				template: parameters.template,
+
 				afterRender: function (targetElement) {
 					if ( ! parameters.afterRender) {
 						return;
@@ -607,39 +690,79 @@
 					parameters.beforeRender.call(this, targetElement);
 					this._redrawingEnabled = true;
 				},
-				cacheKey: parameters.cacheKey || null,
-				data: parameters.data ? utils.cloneObject(parameters.data) : {},
-				methods: parameters.methods || {},
-				onStatusChange: parameters.onStatusChange || function () {},
-				resultCacheEnabled: parameters.resultCacheEnabled || false,
-				template: parameters.template,
 				addData: function (property, value) {
 					this.data[property] = value;
 					bindPropertyDescriptors(this);
+
+					return this;
+				},
+
+				_childrenInstancesIds: [],
+				_data: {},
+				_hash: utils.generateHash(),
+				_parentInstanceId: null,
+				_redrawingEnabled: true,
+				_status: renderingInstancesStatuses.pending,
+				_type: parameters._type || 'view',
+
+				_bindEventHandlers: function () {
+					bindEventHandlers(this);
+
+					return this;
 				},
 				_create: function () {
 					this._setStatus(renderingInstancesStatuses.create);
 					renderingInstances[this.instanceId] = this;
+
 					return this;
 				},
-				_data: {},
 				_destroy: function () {
 					this._setStatus(renderingInstancesStatuses.destroy);
 					delete renderingInstances[this.instanceId];
 				},
-				_hash: utils.generateHash(),
-				_type: parameters._type || 'view',
-				_parent: null,
-				_redrawingEnabled: true,
-				_status: renderingInstancesStatuses.pending,
+				_destroyChildrenInstances: function () {
+					utils.each(this._childrenInstancesIds, function (key, childrenInstanceId) {
+						var childrenInstance = getRenderingInstance(childrenInstanceId, false);
+
+						if ( ! childrenInstance) {
+							return;
+						}
+
+						childrenInstance._destroy();
+					});
+
+					this._childrenInstancesIds = [];
+
+					return this;
+				},
+				_initChildrenInstances: function () {
+					utils.each(this._childrenInstancesIds, function (key, childrenInstanceId) {
+						var childrenInstance = getRenderingInstance(childrenInstanceId);
+						childrenInstance._initChildrenInstances();
+						var targetElement = childrenInstance.el;
+
+						childrenInstance._bindEventHandlers();
+
+						if (typeof childrenInstance.afterRender === 'function') {
+							childrenInstance.afterRender.call(childrenInstance, targetElement);
+						}
+
+						childrenInstance._setStatus(renderingInstancesStatuses.redrawingDone);
+					});
+
+					return this;
+				},
 				_setStatus: function (status) {
 					if (this._status === status) {
-						return;
+						return this;
 					}
 
 					this._status = status;
 					this.onStatusChange.call(this, status);
+
+					return this;
 				},
+
 				set instanceId(id) {
 					this._instanceId = id;
 				},
@@ -648,6 +771,9 @@
 				},
 				get el() {
 					return '[' + selectorAttributeName + '="' + this.instanceId +'"]';
+				},
+				get _parentInstance() {
+					return getRenderingInstance(this._parentInstanceId);
 				}
 			};
 
@@ -692,6 +818,7 @@
 	 */
 	function renderComponent(name, componentDataFromTemplate) {
 		var componentRenderingInstance = getComponent(name);
+
 		if (componentDataFromTemplate) {
 			utils.each(componentDataFromTemplate, function (key, value) {
 				componentRenderingInstance.addData(key, value);
@@ -700,14 +827,13 @@
 
 		componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawing);
 		componentRenderingInstance.beforeRender();
-		componentRenderingInstance._parent = this.parentInstance;
+		componentRenderingInstance._parentInstanceId = this.parentInstance.instanceId;
 
-		var
-			templateObject = renderToString(componentRenderingInstance),
-			renderedComponents =
-				[componentRenderingInstance.instanceId].concat(templateObject.templateRuntime.renderedComponents);
+		var templateObject = renderToString(componentRenderingInstance);
+		componentRenderingInstance._childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
 
-		this.renderedComponents = this.renderedComponents.concat(renderedComponents);
+		// this = _runtime variable in template rendering process
+		this.renderedComponents = this.renderedComponents.concat([componentRenderingInstance.instanceId]);
 		return templateObject.templateString;
 	}
 
@@ -851,7 +977,6 @@
 				: null,
 			data = renderingInstance.data,
 			runtime = {
-				parentInstance: renderingInstance.instanceId,
 				components: getComponents(),
 				getFilter: getFilter,
 				renderedComponents: [],
@@ -869,6 +994,9 @@
 					filter = filter === true ? 'escape' : filter;
 
 					return filter ? this.getFilter(filter).apply(null, data) : data;
+				},
+				get parentInstance() {
+					return getRenderingInstance(renderingInstance.instanceId);
 				}
 			},
 			template = renderingInstance.template,
@@ -922,78 +1050,6 @@
 		};
 	}
 
-	/**
-	 * @param {{}} renderingInstance
-	 * @return {Element}
-	 */
-	function bindEventHandlers(renderingInstance) {
-		renderingInstance._setStatus(renderingInstancesStatuses.bindingEventHandlers);
-
-		var element = document.querySelector(renderingInstance.el);
-
-		if ( ! element) {
-			return;
-		}
-
-		var
-			eventHandlersAttributeSuffix = renderingInstance._type === 'component' ? '-' + renderingInstance._hash : '',
-			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + eventHandlersAttributeSuffix,
-			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
-			eventHandlers = [];
-
-		utils.each(element.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
-			eventHandlers.push(childrenElement);
-		});
-
-		if (element.getAttribute(eventHandlersAttributeNameWithSuffix)) {
-			eventHandlers.push(element);
-		}
-
-		utils.each(eventHandlers, function (key, eventHandler) {
-			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
-
-			utils.each(events, function (key, event) {
-				(function (eventHandler, event) {
-					event = event.trim();
-
-					var
-						eventName = event.match(/^(\S+)/)[1],
-						eventFunction,
-						eventArguments = [];
-
-					event = event.replace(eventName + ' ', '');
-
-					var methodMatch = event.match(/\S+\(.*\)$/);
-
-					if (methodMatch) {
-						var
-							methodMatches = event.match(/^([^(]+)\((.*)\)/),
-							methodName = methodMatches[1],
-							methodArguments = methodMatches[2];
-
-						if ( ! renderingInstance.methods || ! renderingInstance.methods[methodName]) {
-							throw new Error('Brackets: Method "' + methodName + '" is not defined.');
-						}
-
-						eventFunction = renderingInstance.methods[methodName];
-						eventArguments = [methodArguments];
-
-					} else {
-						eventFunction = new Function('data', 'this.' + event + '; return this;');
-					}
-
-					eventHandler.addEventListener(eventName, function (event) {
-						eventFunction.apply(renderingInstance.data, [event].concat(eventArguments));
-					});
-				})(eventHandler, event);
-			});
-
-			if ( ! Brackets.config.devMode) {
-				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
-			}
-		});
-	}
-
 	function redrawInstance(instanceId) {
 		var renderingInstance = getRenderingInstance(instanceId, false);
 
@@ -1008,10 +1064,7 @@
 		}
 
 		renderingInstance._setStatus(renderingInstancesStatuses.redrawing);
-
-		utils.each(targetElement.querySelectorAll('[' + selectorAttributeName + ']'), function (key, instanceElement) {
-			getRenderingInstance(instanceElement.getAttribute(selectorAttributeName))._destroy();
-		});
+		renderingInstance._destroyChildrenInstances();
 
 		renderingInstance.beforeRender(targetElement);
 
@@ -1027,18 +1080,10 @@
 
 		targetElement.innerHTML = templateObject.templateString;
 
-		utils.each(templateObject.templateRuntime.renderedComponents, function (key, componentRenderingInstanceId) {
-			var componentRenderingInstance = getRenderingInstance(componentRenderingInstanceId);
-			bindEventHandlers(componentRenderingInstance);
+		renderingInstance._childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
+		renderingInstance._initChildrenInstances();
+		renderingInstance._bindEventHandlers();
 
-			if (typeof componentRenderingInstance.afterRender === 'function') {
-				componentRenderingInstance.afterRender.call(componentRenderingInstance, targetElement);
-			}
-
-			componentRenderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
-		});
-
-		bindEventHandlers(renderingInstance);
 		targetElement.removeAttribute(nonInitializedElementAttributeName);
 		renderingInstance.afterRender(targetElement);
 		renderingInstance._setStatus(renderingInstancesStatuses.redrawingDone);
