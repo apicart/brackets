@@ -209,7 +209,7 @@ Brackets.render({
 	methods: {
 		showAlert: function (event, parameters) {
 			if (parameters) {
-				this.firstButtonText = parameters;
+				this.data.firstButtonText = parameters;
 			}
 			alert('Hello World!');
 		}
@@ -499,7 +499,7 @@ Brackets
 		},
 		methods: {
 			updateNumber: function () {
-				this.number ++;
+				this.data.number ++;
 			}
 		},
 		template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
@@ -530,7 +530,7 @@ Brackets.addComponent({
 ```
 
 ## Configuration Reserved Keywords
-This keywords you must not use in the configuration object `_create, _data, _destroy, _destroyChildrenInstances, _instanceId, _initChildrenInstances, _hash, _type, _parentInstanceId, _parentInstance, _setStatus, _status`.
+This keywords you must not use in the configuration object `_create, _data, _destroy, _destroyChildrenInstances, _instanceId, _initChildrenInstances, _hash, _type, _parentInstanceId, _parentInstance, redraw, _status`.
 
 ## Rendering Instances
 Rendering instances are interactive objects that were used during the rendering process of each template or component.
