@@ -1,16 +1,16 @@
-import {Brackets, templateLiteral} from './shared/variables';
-import {render} from './render/render';
-import {renderToString} from './render/renderToString';
-import {addMacro, getMacros} from './render/runtime/macros';
+import { Brackets, templateLiteral } from './shared/variables';
+import { render } from './render/render';
+import { renderToString } from './render/renderToString';
+import { addMacro, getMacros } from './runtime/macros';
 import {
 	createRenderingInstanceObject,
 	getRenderingInstance,
-	getRenderingInstances, renderingInstancesStatuses
-} from './render/runtime/renderingInstances';
-import {addComponent, getComponents} from './render/runtime/components';
-import {addFilter, getFilter, getFilters} from './render/runtime/filters';
-import {utils} from './shared/utils';
-import {cacheManager} from './render/cacheManager';
+	getRenderingInstances
+} from './renderingInstances';
+import { addComponent, getComponent, getComponents } from './runtime/components';
+import { addFilter, getFilter, getFilters } from './runtime/filters';
+import { utils } from './shared/utils';
+import { cacheManager } from './cacheManager';
 
 Brackets.utils = utils;
 Brackets.cacheManager = cacheManager;
@@ -21,6 +21,7 @@ Brackets.getFilter = getFilter;
 Brackets.getFilters = getFilters;
 
 Brackets.addComponent = addComponent;
+Brackets.getComponent = getComponent;
 Brackets.getComponents = getComponents;
 
 Brackets.addMacro = addMacro;
@@ -28,7 +29,6 @@ Brackets.getMacros = getMacros;
 
 Brackets.getRenderingInstance = getRenderingInstance;
 Brackets.getRenderingInstances = getRenderingInstances;
-Brackets.renderingInstancesStatuses = renderingInstancesStatuses;
 
 Brackets.render = render;
 
