@@ -137,7 +137,6 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 			_data: parameters.data ? utils.cloneObject(parameters.data) : {},
 			_instanceId: null
-
 		};
 
 	instance.instanceId = parameters.instanceId || null;
@@ -172,7 +171,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		var templateElement = document.querySelector(parameters.template);
 
 		if (templateElement) {
-			instance.template = templateElement.outerHTML;
+			instance.template = templateElement.innerHTML;
 		}
 
 	} else if ( ! parameters.template && ! targetElement) {
