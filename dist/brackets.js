@@ -414,7 +414,7 @@
 						eventArguments = [methodArguments];
 
 					} else {
-						eventFunction = new Function('data', 'this.' + event + '; return this;');
+						eventFunction = new Function('data', 'this.data.' + event + '; return this;');
 					}
 
 					eventHandler.addEventListener(eventName, function (event) {
@@ -823,14 +823,22 @@
 		var
 			templateObject = renderToString(instance),
 			templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
-			replacingElement = templateParentNode.body.firstChild,
+			templateParentNodeFirstChild = templateParentNode.body.firstChild,
+			replacingElement = templateParentNodeFirstChild instanceof Element
+				? templateParentNodeFirstChild
+				: templateParentNode.body.innerHTML,
 			elementToBeReplaced = instance.el;
 
 		instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
-		instance.el = replacingElement;
-		instance.mount();
 
-		elementToBeReplaced.parentElement.replaceChild(replacingElement, elementToBeReplaced);
+		if (replacingElement instanceof Element) {
+			instance.el = replacingElement;
+			instance.mount();
+			elementToBeReplaced.parentElement.replaceChild(replacingElement, elementToBeReplaced);
+
+		} else {
+			elementToBeReplaced.innerHTML = replacingElement;
+		}
 	}
 
 	/**
@@ -986,7 +994,6 @@
 
 				_data: parameters.data ? utils.cloneObject(parameters.data) : {},
 				_instanceId: null
-
 			};
 
 		instance.instanceId = parameters.instanceId || null;
@@ -1021,7 +1028,7 @@
 			var templateElement = document.querySelector(parameters.template);
 
 			if (templateElement) {
-				instance.template = templateElement.outerHTML;
+				instance.template = templateElement.innerHTML;
 			}
 
 		} else if ( ! parameters.template && ! targetElement) {
