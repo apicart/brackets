@@ -59,7 +59,7 @@ export function bindEventHandlers(renderingInstance) {
 					eventArguments = [methodArguments];
 
 				} else {
-					eventFunction = new Function('data', 'this.' + event + '; return this;');
+					eventFunction = new Function('data', 'this.data.' + event + '; return this;');
 				}
 
 				eventHandler.addEventListener(eventName, function (event) {
