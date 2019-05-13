@@ -10,12 +10,20 @@ export function renderInstance(instance) {
 	var
 		templateObject = renderToString(instance),
 		templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
-		replacingElement = templateParentNode.body.firstChild,
+		templateParentNodeFirstChild = templateParentNode.body.firstChild,
+		replacingElement = templateParentNodeFirstChild instanceof Element
+			? templateParentNodeFirstChild
+			: templateParentNode.body.innerHTML,
 		elementToBeReplaced = instance.el;
 
 	instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
-	instance.el = replacingElement;
-	instance.mount();
 
-	elementToBeReplaced.parentElement.replaceChild(replacingElement, elementToBeReplaced);
+	if (replacingElement instanceof Element) {
+		instance.el = replacingElement;
+		instance.mount();
+		elementToBeReplaced.parentElement.replaceChild(replacingElement, elementToBeReplaced);
+
+	} else {
+		elementToBeReplaced.innerHTML = replacingElement;
+	}
 }
