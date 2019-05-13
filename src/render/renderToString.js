@@ -1,11 +1,11 @@
-import {templateLiteralsEnabled, selectorAttributeName, eventHandlersAttributeName} from '../shared/variables';
-import {utils} from '../shared/utils';
-import {tokenizeTemplate} from './compiler/tokenizeTemplate';
-import {compileTemplate} from './compiler/compileTemplate';
-import {getFilter} from './runtime/filters';
-import {getComponents} from './runtime/components';
-import {renderingInstancesStatuses, getRenderingInstance} from './runtime/renderingInstances';
-import {cacheManager} from './cacheManager';
+import { templateLiteralsEnabled, selectorAttributeName, eventHandlersAttributeName } from '../shared/variables';
+import { utils } from '../shared/utils';
+import { tokenizeTemplate } from '../compiler/tokenizeTemplate';
+import { compileTemplate } from '../compiler/compileTemplate';
+import { getFilter } from '../runtime/filters';
+import { getComponent } from '../runtime/components';
+import { getRenderingInstance } from '../renderingInstances';
+import { cacheManager } from '../cacheManager';
 
 
 var
@@ -18,18 +18,13 @@ var
  * @return {{}}
  */
 export function renderToString(renderingInstance) {
-	renderingInstance._setStatus(renderingInstancesStatuses.renderingToString);
-
 	var templateObject = renderingInstance.resultCacheEnabled
-		? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash)
+		? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash)
 		: null;
 
 	if ( ! templateObject) {
 		templateObject = generateTemplateString(renderingInstance);
 	}
-
-	renderingInstance._setStatus(renderingInstancesStatuses.renderingToStringDone);
-
 	return templateObject;
 }
 
@@ -44,9 +39,11 @@ function generateTemplateString(renderingInstance) {
 		templateFunction = cacheKeyIsSet
 			? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey)
 			: null,
-		data = renderingInstance.data,
+		data = renderingInstance._data,
 		runtime = {
-			components: getComponents(),
+			renderComponent: function (name, componentDataFromTemplate) {
+				return getComponent(name).render(this, componentDataFromTemplate);
+			},
 			getFilter: getFilter,
 			renderedComponents: [],
 			utils: utils,
@@ -64,9 +61,7 @@ function generateTemplateString(renderingInstance) {
 
 				return filter ? this.getFilter(filter).apply(null, data) : data;
 			},
-			get parentInstance() {
-				return getRenderingInstance(renderingInstance.instanceId);
-			}
+			parentInstance: renderingInstance
 		},
 		template = renderingInstance.template,
 		templateArguments = [runtime],
@@ -92,12 +87,12 @@ function generateTemplateString(renderingInstance) {
 
 	var templateString = templateFunction.apply(null, templateArguments);
 
-	if (renderingInstance._type === 'component') {
-		templateString = templateString.replace(
-			new RegExp(eventHandlersAttributeName + '=', 'g'),
-			eventHandlersAttributeName + '-' + renderingInstance._hash + '='
-		);
+	templateString = templateString.replace(
+		new RegExp(eventHandlersAttributeName + '=', 'g'),
+		eventHandlersAttributeName + '-' + renderingInstance.hash + '='
+	);
 
+	if (renderingInstance.type === 'component') {
 		var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 		if (parentElement) {
@@ -107,7 +102,7 @@ function generateTemplateString(renderingInstance) {
 	}
 
 	if (renderingInstance.resultCacheEnabled) {
-		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance._hash, {
+		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash, {
 			templateString: templateString,
 			templateRuntime: runtime
 		});
