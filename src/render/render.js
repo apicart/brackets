@@ -1,7 +1,6 @@
-import {Brackets} from '../shared/variables';
-import {utils} from '../shared/utils';
-import {redrawInstance} from './redrawler';
-import {createRenderingInstanceObject} from './runtime/renderingInstances';
+import { Brackets } from '../shared/variables';
+import { utils } from '../shared/utils';
+import { createRenderingInstanceObject } from '../renderingInstances';
 
 
 /**
@@ -35,9 +34,8 @@ export function render(parameters) {
 	}
 
 	utils.each(targetElements, function (key, targetElement) {
-		redrawInstance(createRenderingInstanceObject(parameters, targetElement).instanceId);
+		createRenderingInstanceObject(parameters, targetElement).render();
 	});
 
 	return Brackets;
 }
-
