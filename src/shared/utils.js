@@ -49,6 +49,11 @@ utils.isObject = function (data) {
 };
 
 
+utils.isFunction = function (data) {
+	return typeof data === 'function';
+}
+
+
 /**
  * @param {{}|[]} iterable
  * @param {function} callback
