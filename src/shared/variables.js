@@ -1,6 +1,6 @@
-import {utils} from './utils';
-import {initTemplateTokenizer} from '../render/compiler/tokenizeTemplate';
-import {initMacros} from '../render/runtime/macros';
+import { utils } from './utils';
+import { initTemplateTokenizer } from '../compiler/tokenizeTemplate';
+import { initMacros } from '../runtime/macros';
 
 export var Brackets = {
 	config: {
@@ -21,7 +21,7 @@ export var Brackets = {
 
 export var eventHandlersAttributeName = 'b-on';
 export var nonInitializedElementAttributeName = 'b-init';
-export var selectorAttributeName = 'data-b-instance';
+export var selectorAttributeName = 'b-instance';
 
 export var templateLiteralsEnabled = (function () {
 	try {
