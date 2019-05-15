@@ -49,9 +49,13 @@ utils.isObject = function (data) {
 };
 
 
+/**
+ * @param {*} data
+ * @returns {boolean}
+ */
 utils.isFunction = function (data) {
 	return typeof data === 'function';
-}
+};
 
 
 /**
