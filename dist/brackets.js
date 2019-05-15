@@ -1,5 +1,5 @@
 /** 
- * brackets.js v1.0.0-alpha2 
+ * brackets.js v1.0.0-alpha3 
  * (c) 2018-2019 Vladimír Macháček
  *  Released under the MIT License.
  */
@@ -59,6 +59,10 @@
 	};
 
 
+	/**
+	 * @param {*} data
+	 * @returns {boolean}
+	 */
 	utils.isFunction = function (data) {
 		return typeof data === 'function';
 	};
@@ -337,99 +341,6 @@
 	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 
 	/**
-	 * @param {{}} renderingInstance
-	 */
-	function bindPropertyDescriptors(renderingInstance) {
-		utils.each(renderingInstance._data, function (propertyKey, propertyValue) {
-			if (propertyKey in renderingInstance.data) {
-				return;
-			}
-
-			Object.defineProperty(renderingInstance.data, propertyKey, {
-				get: function () {
-					return renderingInstance._data[propertyKey];
-				},
-				set: function (value) {
-					renderingInstance._data[propertyKey] = value;
-					renderingInstance.redraw();
-				}
-			});
-		});
-	}
-
-	/**
-	 * @param {{}} renderingInstance
-	 */
-	function bindEventHandlers(renderingInstance) {
-		if ( ! renderingInstance.el) {
-			return;
-		}
-
-		var
-			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.hash,
-			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
-			eventHandlers = [];
-
-		utils.each(renderingInstance.el.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
-			eventHandlers.push(childrenElement);
-		});
-
-		if (renderingInstance.el.getAttribute(eventHandlersAttributeNameWithSuffix)) {
-			eventHandlers.push(renderingInstance.el);
-		}
-
-		utils.each(eventHandlers, function (key, eventHandler) {
-			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
-
-			utils.each(events, function (key, event) {
-				(function (eventHandler, event) {
-					event = event.trim();
-
-					var eventNameMatch = event.match(/^(\S+)/);
-
-					if ( ! eventNameMatch || typeof eventNameMatch[1] === 'undefined') {
-						return;
-					}
-
-					var
-						eventName = eventNameMatch[1],
-						eventFunction,
-						eventArguments = [];
-
-					event = event.replace(eventName + ' ', '');
-
-					var methodMatch = event.match(/\S+\(.*\)$/);
-
-					if (methodMatch) {
-						var
-							methodMatches = event.match(/^([^(]+)\((.*)\)/),
-							methodName = methodMatches[1],
-							methodArguments = methodMatches[2];
-
-						if ( ! renderingInstance.methods[methodName]) {
-							throw new Error('Brackets: Method "' + methodName + '" is not defined.');
-						}
-
-						eventFunction = renderingInstance.methods[methodName];
-						eventArguments = [methodArguments];
-
-					} else {
-						eventFunction = new Function('data', 'this.data.' + event + '; return this;');
-					}
-
-					eventHandler.addEventListener(eventName, function (event) {
-						eventFunction.apply(renderingInstance, [event].concat(eventArguments));
-					});
-				})(eventHandler, event);
-			});
-
-			if ( ! Brackets.config.devMode) {
-				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
-			}
-		});
-	}
-
-	/**
 	 * @param {[]} tokenMatchArray
 	 * @return {string}
 	 */
@@ -601,52 +512,6 @@
 		});
 	});
 
-	var components = {
-		register: {}
-	};
-
-
-	/**
-	 * @param {string} name
-	 * @param {{}} parameters
-	 * @return {Brackets}
-	 */
-	function addComponent(name, parameters) {
-		if (getComponent(name, false)) {
-			throw new Error('Brackets: Component "' + name +'" is already defined.');
-		}
-
-		parameters.type = 'component';
-		components.register[name] = parameters;
-
-		return Brackets;
-	}
-
-
-	/**
-	 * @param {string} name
-	 * @param {boolean|null} required
-	 * @return {{}}
-	 */
-	function getComponent(name, required) {
-		var componentExists = name in components.register;
-
-		if ( ! componentExists) {
-			if (required !== false) {
-				throw new Error('Brackets: Component "' + name + '" not found.');
-			}
-
-			return null;
-		}
-
-		return createRenderingInstanceObject(utils.cloneObject(components.register[name]));
-	}
-
-
-	function getComponents() {
-		return components;
-	}
-
 	var cacheManager = {
 		cache: {}
 	};
@@ -710,22 +575,6 @@
 	var
 		TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
 		TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
-
-
-	/**
-	 * @param {{}} renderingInstance
-	 * @return {{}}
-	 */
-	function renderToString(renderingInstance) {
-		var templateObject = renderingInstance.resultCacheEnabled
-			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash)
-			: null;
-
-		if ( ! templateObject) {
-			templateObject = generateTemplateString(renderingInstance);
-		}
-		return templateObject;
-	}
 
 
 	/**
@@ -813,33 +662,63 @@
 		};
 	}
 
-	function renderInstance(instance) {
-		if ( ! instance.redrawingEnabled || ! instance.el) {
-			return;
+
+	/**
+	 * @param {{}} renderingInstance
+	 * @return {{}}
+	 */
+	function renderToString(renderingInstance) {
+		var templateObject = renderingInstance.resultCacheEnabled
+			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash)
+			: null;
+
+		if ( ! templateObject) {
+			templateObject = generateTemplateString(renderingInstance);
 		}
-
-		instance.destroyChildrenInstances();
-
-		var
-			templateObject = renderToString(instance),
-			templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
-			templateParentNodeFirstChild = templateParentNode.body.firstChild,
-			replacingElement = templateParentNodeFirstChild instanceof Element
-				? templateParentNodeFirstChild
-				: templateParentNode.body.innerHTML,
-			elementToBeReplaced = instance.el;
-
-		instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
-
-		if (replacingElement instanceof Element) {
-			instance.el = replacingElement;
-			instance.mount();
-			elementToBeReplaced.parentElement.replaceChild(replacingElement, elementToBeReplaced);
-
-		} else {
-			elementToBeReplaced.innerHTML = replacingElement;
-		}
+		return templateObject;
 	}
+
+	var components = {
+		register: {}
+	};
+
+
+	/**
+	 * @param {string} name
+	 * @param {{}} parameters
+	 * @return {Brackets}
+	 */
+	function addComponent(name, parameters) {
+		if (getComponent(name, false)) {
+			throw new Error('Brackets: Component "' + name +'" is already defined.');
+		}
+
+		parameters.type = 'component';
+		components.register[name] = parameters;
+
+		return Brackets;
+	}
+
+
+	/**
+	 * @param {string} name
+	 * @param {boolean|null} required
+	 * @return {{}}
+	 */
+	function getComponent(name, required) {
+		var componentExists = name in components.register;
+
+		if ( ! componentExists) {
+			if (required !== false) {
+				throw new Error('Brackets: Component "' + name + '" not found.');
+			}
+
+			return null;
+		}
+
+		return createRenderingInstanceObject(utils.cloneObject(components.register[name]));
+	}
+
 
 	/**
 	 * @param {{}} runtime
@@ -855,48 +734,115 @@
 	    }
 
 		instance.parentInstanceId = runtime.parentInstance.instanceId;
+
 	    var templateObject = renderToString(instance);
 
-	    instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
+		instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
 	    runtime.renderedComponents = runtime.renderedComponents.concat([instance.instanceId]);
 
 	    return templateObject.templateString;
 	}
 
+
+	function getComponents() {
+		return components;
+	}
+
 	var renderingInstances = {};
 
-	function getRenderingInstances(type) {
-		if ( ! type) {
-			return renderingInstances;
+
+	/*
+	 * @param {{}} renderingInstance
+	 */
+	function bindEventHandlers(renderingInstance) {
+		if ( ! renderingInstance.el) {
+			return;
 		}
 
-		var selectedInstances = {};
+		var
+			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.hash,
+			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
+			eventHandlers = [];
 
-		utils.each(renderingInstances, function (id, instance) {
-			if (instance.type === type) {
-				selectedInstances[id] = instance;
-			}
+		utils.each(renderingInstance.el.querySelectorAll(eventHandlersSelector), function (key, childrenElement) {
+			eventHandlers.push(childrenElement);
 		});
 
-		return selectedInstances;
+		if (renderingInstance.el.getAttribute(eventHandlersAttributeNameWithSuffix)) {
+			eventHandlers.push(renderingInstance.el);
+		}
+
+		utils.each(eventHandlers, function (key, eventHandler) {
+			var events = eventHandler.getAttribute(eventHandlersAttributeNameWithSuffix).split(';');
+
+			utils.each(events, function (key, event) {
+				(function (eventHandler, event) {
+					event = event.trim();
+
+					var eventNameMatch = event.match(/^(\S+)/);
+
+					if ( ! eventNameMatch || typeof eventNameMatch[1] === 'undefined') {
+						return;
+					}
+
+					var
+						eventName = eventNameMatch[1],
+						eventFunction,
+						eventArguments = [];
+
+					event = event.replace(eventName + ' ', '');
+
+					var methodMatch = event.match(/\S+\(.*\)$/);
+
+					if (methodMatch) {
+						var
+							methodMatches = event.match(/^([^(]+)\((.*)\)/),
+							methodName = methodMatches[1],
+							methodArguments = methodMatches[2];
+
+						if ( ! renderingInstance.methods[methodName]) {
+							throw new Error('Brackets: Method "' + methodName + '" is not defined.');
+						}
+
+						eventFunction = renderingInstance.methods[methodName];
+						eventArguments = [methodArguments];
+
+					} else {
+						eventFunction = new Function('data', 'this.data.' + event + '; return this;');
+					}
+
+					eventHandler.addEventListener(eventName, function (event) {
+						eventFunction.apply(renderingInstance, [event].concat(eventArguments));
+					});
+				})(eventHandler, event);
+			});
+
+			if ( ! Brackets.config.devMode) {
+				eventHandler.removeAttribute(eventHandlersAttributeNameWithSuffix);
+			}
+		});
 	}
 
 
 	/**
-	 * @param {string} id
-	 * @param {boolean|null} required
-	 * @return {*}
+	 * @param {{}} renderingInstance
 	 */
-	function getRenderingInstance(id, required) {
-		if (id === null) {
-			return null;
-		}
+	function bindPropertyDescriptors(renderingInstance) {
+		utils.each(renderingInstance._data, function (propertyKey, propertyValue) {
+			if (propertyKey in renderingInstance.data) {
+				return;
+			}
 
-		if (required !== false && ! (id in renderingInstances)) {
-			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
-		}
-
-		return renderingInstances[id] || null;
+			Object.defineProperty(renderingInstance.data, propertyKey, {
+				get: function () {
+					return renderingInstance._data[propertyKey];
+				},
+				set: function (value) {
+					renderingInstance._data[propertyKey] = value;
+					renderingInstance.redraw();
+				}
+			});
+		});
 	}
 
 
@@ -918,70 +864,15 @@
 				cacheKey: parameters.cacheKey || null,
 				data: {},
 				hash: utils.generateHash(),
+				isMounted: false,
 				methods: {},
 				parentInstanceId: null,
-				redrawingEnabled: true,
+				redrawingEnabled: false,
 				resultCacheEnabled: parameters.resultCacheEnabled || false,
 				type: parameters.type || 'view',
 				template: parameters.template,
-
-				addData: function (property, value) {
-					this._data[property] = value;
-					bindPropertyDescriptors(this);
-					return this;
-				},
-				redraw: function () {
-					renderInstance(this);
-					return this;
-				},
-
-				created: function () {
-					if (utils.isFunction(parameters.created)) {
-						parameters.created();
-					}
-
-					return this;
-				},
-				mounted: function () {
-					if (utils.isFunction(parameters.mounted)) {
-						parameters.mounted();
-					}
-
-					return this;
-				},
-				updated: function () {
-					if (utils.isFunction(parameters.updated)) {
-						parameters.updated();
-					}
-
-					return this;
-				},
-				destroyed: function () {
-					if (utils.isFunction(parameters.destroyed)) {
-						parameters.destroyed();
-					}
-
-					return this;
-				},
-
-				destroy: function () {
-					delete renderingInstances[this.instanceId];
-					this.destroyed();
-
-					return this;
-				},
-				destroyChildrenInstances: function () {
-					destroyChildrenInstances(this);
-
-					return this;
-				},
-				mount: function () {
-					mountInstance(this);
-					this.mounted();
-
-					return this;
-				},
-
+				_data: parameters.data ? utils.cloneObject(parameters.data) : {},
+				_instanceId: null,
 				set instanceId(id) {
 					this._instanceId = id;
 				},
@@ -992,23 +883,95 @@
 					return getRenderingInstance(this.parentInstanceId);
 				},
 
-				_data: parameters.data ? utils.cloneObject(parameters.data) : {},
-				_instanceId: null
+
+				addData: function (property, value) {
+					this._data[property] = value;
+					bindPropertyDescriptors(this);
+					return this;
+				},
+				destroy: function () {
+					this.beforeDestroy();
+
+					destroyChildrenInstances(this);
+					delete renderingInstances[this.instanceId];
+
+					this.destroyed();
+
+					return this;
+				},
+				redraw: function () {
+					renderInstance(this);
+					return this;
+				},
+
+
+				beforeCreate: function () {
+					if (utils.isFunction(parameters.beforeCreate)) {
+						parameters.beforeCreate.call(this);
+					}
+
+					return this;
+				},
+				created: function () {
+					if (utils.isFunction(parameters.created)) {
+						parameters.created.call(this);
+					}
+
+					return this;
+				},
+
+				beforeMount: function () {
+					if (utils.isFunction(parameters.beforeMount)) {
+						parameters.beforeMount.call(this);
+					}
+
+					return this;
+				},
+				mounted: function () {
+					if (utils.isFunction(parameters.mounted)) {
+						parameters.mounted.call(this);
+					}
+
+					return this;
+				},
+
+				beforeUpdate: function() {
+					if (utils.isFunction(parameters.beforeUpdate)) {
+						parameters.beforeUpdate.call(this);
+					}
+
+					return this;
+				},
+				updated: function () {
+					if (utils.isFunction(parameters.updated)) {
+						parameters.updated.call(this);
+					}
+
+					return this;
+				},
+
+				beforeDestroy: function () {
+					if (utils.isFunction(parameters.beforeDestroye)) {
+						parameters.beforeDestroy.call(this);
+					}
+
+					return this;
+				},
+				destroyed: function () {
+					if (utils.isFunction(parameters.destroyed)) {
+						parameters.destroyed.call(this);
+					}
+
+					return this;
+				}
 			};
 
 		instance.instanceId = parameters.instanceId || null;
-		instance.elSelector = '[' + selectorAttributeName + '="' + instance.instanceId +'"]';
-
-		if (instance.type === 'view') {
-			instance.el = targetElement ? targetElement : null;
-
-		} else {
-			instance.el = targetElement ? targetElement : null;
-		}
+		instance.el = targetElement ? targetElement : null;
 
 		if (instance.type === 'view') {
 			instance.render = function () {
-				renderInstance(this);
+				return renderInstance(this);
 			};
 
 		} else {
@@ -1039,20 +1002,26 @@
 			instance.methods[key] = value;
 		});
 
-
 		bindPropertyDescriptors(instance);
+
+		instance.beforeCreate();
 
 		if (getRenderingInstance(instance.instanceId, false)) {
 			throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 		}
 
+		instance.redrawingEnabled = true;
 		renderingInstances[instance.instanceId] = instance;
+
 		instance.created();
 
 		return instance;
 	}
 
 
+	/**
+	 * @param {{}} instance
+	 */
 	function destroyChildrenInstances(instance) {
 		utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
 			var childrenInstance = getRenderingInstance(childrenInstanceId, false);
@@ -1068,19 +1037,115 @@
 	}
 
 
-	function mountInstance(instance) {
-		bindEventHandlers(instance);
+	/**
+	 * @param {string} id
+	 * @param {boolean|null} required
+	 * @return {*}
+	 */
+	function getRenderingInstance(id, required) {
+		if (id === null) {
+			return null;
+		}
 
-		if ( ! Brackets.config.devMode) {
+		if (required !== false && ! (id in renderingInstances)) {
+			throw new Error('Brackets: Rendering instance "' + id +'" not found.');
+		}
+
+		return renderingInstances[id] || null;
+	}
+
+
+	/**
+	 * @param {string} type
+	 */
+	function getRenderingInstances(type) {
+		if ( ! type) {
+			return renderingInstances;
+		}
+
+		var selectedInstances = {};
+
+		utils.each(renderingInstances, function (id, instance) {
+			if (instance.type === type) {
+				selectedInstances[id] = instance;
+			}
+		});
+
+		return selectedInstances;
+	}
+
+
+	/**
+	 * @param {{}} instance
+	 */
+	function prepareInstanceForRendering(instance) {
+		var instanceElementIsElement = instance.el instanceof Element;
+
+		if (instanceElementIsElement) {
+			bindEventHandlers(instance);
+		}
+
+		if (instanceElementIsElement && ! Brackets.config.devMode) {
 			instance.el.removeAttribute(nonInitializedElementAttributeName);
 			instance.el.removeAttribute('b-instance');
+		}
+
+		if (instance.isMounted) {
+			instance.beforeUpdate();
+
+		} else {
+			instance.beforeMount();
 		}
 
 		utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
 			var childrenInstance = getRenderingInstance(childrenInstanceId);
 			childrenInstance.el = instance.el.querySelector('[b-instance="' + childrenInstanceId + '"]');
-			childrenInstance.mount();
+			prepareInstanceForRendering(childrenInstance);
+			childrenInstance.isMounted = true;
 		});
+	}
+
+
+	/**
+	 * @param {} instance
+	 */
+	function renderInstance(instance) {
+		if ( ! instance.redrawingEnabled || ! instance.el) {
+			return;
+		}
+
+		destroyChildrenInstances(instance);
+
+		var
+			templateObject = renderToString(instance),
+			templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
+			templateParentNodeFirstChild = templateParentNode.body.firstChild,
+			replacingElement = templateParentNodeFirstChild instanceof Element
+				? templateParentNodeFirstChild
+				: templateParentNode.body.innerHTML,
+			elementToBeReplaced = instance.el;
+
+		instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
+		instance.el = replacingElement;
+
+		prepareInstanceForRendering(instance);
+
+		if (replacingElement instanceof Element) {
+			elementToBeReplaced.parentElement.replaceChild(instance.el, elementToBeReplaced);
+
+		} else {
+			elementToBeReplaced.innerHTML = instance.el;
+		}
+
+		if (instance.isMounted) {
+			instance.updated();
+
+		} else {
+			instance.mounted();
+			instance.isMounted = true;
+		}
+
+		return instance;
 	}
 
 	/**
@@ -1113,11 +1178,13 @@
 			return;
 		}
 
+		var renderedInstances = [];
+
 		utils.each(targetElements, function (key, targetElement) {
-			createRenderingInstanceObject(parameters, targetElement).render();
+			renderedInstances.push(createRenderingInstanceObject(parameters, targetElement).render());
 		});
 
-		return Brackets;
+		return renderedInstances.length > 1 ? renderedInstances : renderedInstances[0];
 	}
 
 	Brackets.utils = utils;
