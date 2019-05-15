@@ -1,6 +1,7 @@
 import { Brackets } from '../shared/variables';
 import { utils } from '../shared/utils';
-import { createRenderingInstanceObject } from '../renderingInstances';
+import { createRenderingInstanceObject } from '../renderingInstance';
+import { renderToString } from '../renderToString';
 
 
 var components = {
@@ -42,6 +43,30 @@ export function getComponent(name, required) {
 	}
 
 	return createRenderingInstanceObject(utils.cloneObject(components.register[name]));
+}
+
+
+/**
+ * @param {{}} runtime
+ * @param {{}} instance
+ * @param {{}} componentDataFromTemplate
+ * @return {string}
+ */
+export function renderComponent(runtime, instance, componentDataFromTemplate) {
+	if (componentDataFromTemplate) {
+		utils.each(componentDataFromTemplate, function (key, value) {
+			instance.addData(key, value);
+		});
+    }
+
+	instance.parentInstanceId = runtime.parentInstance.instanceId;
+
+    var templateObject = renderToString(instance);
+
+	instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
+    runtime.renderedComponents = runtime.renderedComponents.concat([instance.instanceId]);
+
+    return templateObject.templateString;
 }
 
 
