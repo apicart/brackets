@@ -1,12 +1,12 @@
 import { Brackets, templateLiteral } from './shared/variables';
-import { render } from './render/render';
-import { renderToString } from './render/renderToString';
+import { render } from './render';
+import { renderToString } from './renderToString';
 import { addMacro, getMacros } from './runtime/macros';
 import {
 	createRenderingInstanceObject,
 	getRenderingInstance,
 	getRenderingInstances
-} from './renderingInstances';
+} from './renderingInstance';
 import { addComponent, getComponent, getComponents } from './runtime/components';
 import { addFilter, getFilter, getFilters } from './runtime/filters';
 import { utils } from './shared/utils';
