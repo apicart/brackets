@@ -168,7 +168,6 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 			beforeCreate: function () {
 				if (utils.isFunction(parameters.beforeCreate)) {
-					console.log(this);
 					parameters.beforeCreate.call(this);
 				}
 
@@ -176,7 +175,6 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			},
 			created: function () {
 				if (utils.isFunction(parameters.created)) {
-					console.log(this);
 					parameters.created.call(this);
 				}
 
