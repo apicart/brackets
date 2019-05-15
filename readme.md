@@ -80,6 +80,25 @@ Brackets.render({
 I ❤️ Brackets!
 ```
 
+You can also store the rendered view into a variable and change the data from there. The result will be the same.
+In case you use class selector and more views are rendered, you will get an array from the render function over which you can iterate.
+
+```html
+<div id="app">
+	{{$text}}
+</div>
+<script>
+var appView = Brackets.render({
+	el: '#app',
+	data: {
+		text: ""
+	}
+});
+
+appView.data.text = 'I ❤️ Brackets!'
+</script>
+```
+
 ## Cache
 Cache speed's up the rendering process. There are two types of cache. Functions cache and results cache.
 - **Results cache**: Caches the whole content of the rendered instance. This cache is good for templates where the variables are not changed. You can enable it by setting the `resultCacheEnabled` to true.
@@ -143,15 +162,14 @@ In case you need some condition for providing a correct template (for example fo
 
 ```html
 <div id="app"></div>
-<template id="templateA">A</template>
-<template id="templateB">B</template>
+<template id="templateA">Template - A</template>
+<template id="templateB">Template - B</template>
 <script>
 Brackets.render({
 	el: '#app',
 	cacheKey: 'test',
 	data: {
-		version: 'a',
-		text: "I ❤️ Brackets!"
+		version: 'a'
 	},
 	template: function () {
 		return this.data.version === 'a' ? '#templateA' : '#templateB';
@@ -494,6 +512,7 @@ then it's parent component must have some root element in which the component is
 <script>
 Brackets
 	.addComponent('shareButton', {
+		instanceId: 'shareButton',
 		data: {
 			number: 0
 		},
@@ -505,9 +524,11 @@ Brackets
 		template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
 	})
 	.addComponent('shareArticle', {
+		instanceId: 'shareArticle',
 		template: '<div>{{$articleName}} => {{component shareButton}}</div>'
 	})
 	.render({
+		instanceId: 'app',
 		el: '.app'
 	});
 </script>
