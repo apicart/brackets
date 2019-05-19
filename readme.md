@@ -195,10 +195,10 @@ Brackets.render({
 	data: {
 		number: 1
 	},
-	beforeRender: function () {
-		this.data.number += 1;
+	beforeCreate: function () {
+		this.data.number +;;
 	},
-	afterRender: function () {
+	mounted: function () {
 		alert("Generated number is " + this.data.number);
 	}
 });
@@ -460,8 +460,6 @@ Brackets
 ## Complete Rendering Configuration
 ```javascript
 Brackets.render({
-	afterRender: <function|null>,
-	beforeRender: <function|null>,
 	addData: <function|null>,
 	cacheKey: <string|null>,
 	data: <object|null>,
@@ -470,7 +468,17 @@ Brackets.render({
 	methods: <object|null>,
 	onStatusChange: <function|null>,
 	resultCacheEnabled: <function|null>,
-	template: <string|null>
+	template: <string|null>,
+
+	// Lifecycle hooks
+	beforeCreate: <function|null>,
+	created: <function|null>,
+	beforeMount: <function|null>,
+	mounted: <function|null>,
+	beforeUpdate: <function|null>,
+	updated: <function|null>,
+	beforeDestroy: <function|null>,
+	destroyed: <function|null>
 })
 ```
 
@@ -537,8 +545,6 @@ Brackets
 ### Complete Components Configuration
 ```javascript
 Brackets.addComponent({
-	afterRender: <function|null>,
-	beforeRender: <function|null>,
 	addData: <function|null>,
 	cacheKey: <string|null>,
 	data: <object|null>,
@@ -546,12 +552,19 @@ Brackets.addComponent({
 	methods: <object|null>,
 	onStatusChange: <function|null>,
 	resultCacheEnabled: <function|null>,
-	template: <string>
+	template: <string>,
+
+	// Lifecycle hooks
+	beforeCreate: <function|null>,
+	created: <function|null>,
+	beforeMount: <function|null>,
+	mounted: <function|null>,
+	beforeUpdate: <function|null>,
+	updated: <function|null>,
+	beforeDestroy: <function|null>,
+	destroyed: <function|null>
 })
 ```
-
-## Configuration Reserved Keywords
-This keywords you must not use in the configuration object `_create, _data, _destroy, _destroyChildrenInstances, _instanceId, _initChildrenInstances, _hash, _type, _parentInstanceId, _parentInstance, redraw, _status`.
 
 ## Rendering Instances
 Rendering instances are interactive objects that were used during the rendering process of each template or component.
@@ -559,36 +572,38 @@ Each rendering instance have an `id`. Because there can be multiple instances du
 
 The following example shows how to work with instances.
 ```javascript
+Brackets.findRenderingInstances('my-instance') // Finds all rendering instances that matches id. Returns object
 Brackets.getRenderingInstances() // Returns an object containing all rendering instances
+
+var myInstance = Brackets.findRenderingInstance('my-instance') // Finds only one instance that matches id.
 var myInstance = Brackets.getRenderingInstance('my-instance-1234') // Returns the selected instance
+
 myInstance.data.number += 2 // Changing data structure in the renderingInstance will trigger the selected instance redrawal
-myInstance.addData('key', 'value'); // This will add new data by key into the data object
+myInstance.addData('key', 'value'); // This will add new data by key into the data object and makes it reactive
 ```
 
-Instances have also some statuses. You can use string or pass the constant from brackets object `Brackets.renderingInstancesStatuses.<status>`
-
-- **create**: When the instance is succesfully created.
-- **pending**: The default status after creation.
-- **redrawing**: When the instance is being redrawed.
-- **renderingToString**: When the instance template is being rendered into string.
-- **renderingToStringDone**: When the instance template is rendered to string.
-- **bindingEventHandlers**: When event handlers for the component are being attached.
-- **redrawingDone**: When the instance is completely redrawed and ready to use.
-- **destroy**: When the instance is being removed.
-
-The default state after creating is `pending`. Then, before the whole rendering process starts and before the `beforeRender`method, the instance is set to `processing`. After the rendering the instance is set to `rendered`.
-
-You can listen to these changes by providing `onStatusChange` parameter, that must be a function. The rendered instance is passed as `this` parameter and the status parameter is passed as a function argument. The usage is as follows.
+## Rendering instances lifecycle hooks
+There are multiple lifecycle hooks available:
+- **beforeCreate** - Triggers before an instance is created and stored into a register. The data object is reactive. Instance  is not attached to DOM yet and cannot be redrawed.
+- **created** - Similar to the beforeCreate hook except the instance is already registered in register.
+- **beforeMount** - Before the instance is attached to DOM. Triggers only during first rendering.
+- **mounted** - Right after the instance is attached to DOM. Triggers only during first rendering. Since now, the instance will be redrawed if the data changes.
+- **beforeUpdate** - When the instance was already mounted and is going to be redrawed.
+- **updated** - Right after the instance is redrawed.
+- **beforeDestroy** - Before the instance is destroyed.
+- **destroyed** - Right after the instance is destroyed.
 
 ```javascript
 Brackets.render({
-	...
-	onStatusChange: function (status) {
-		console.log(this) // Will log the whole instance
-		console.log(status) // Logs current instance status
-	}
-	...
-})
+	beforeCreate: function () {},
+	created: function () {},
+	beforeMount: function () {},
+	mounted: function () {},
+	beforeUpdate: function () {},
+	updated: function () {},
+	beforeDestroy: function () {},
+	destroyed: function () {}
+});
 ```
 
 ## Security
