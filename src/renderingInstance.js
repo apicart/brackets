@@ -40,7 +40,7 @@ function bindEventHandlers(renderingInstance) {
 			(function (eventHandler, event) {
 				event = event.trim();
 
-				var eventNameMatch = event.match(/^(\S+)/)
+				var eventNameMatch = event.match(/^(\S+)/);
 
 				if ( ! eventNameMatch || typeof eventNameMatch[1] === 'undefined') {
 					return;
@@ -89,7 +89,7 @@ function bindEventHandlers(renderingInstance) {
  * @param {{}} renderingInstance
  */
 function bindPropertyDescriptors(renderingInstance) {
-	utils.each(renderingInstance._data, function (propertyKey, propertyValue) {
+	utils.each(renderingInstance._data, function (propertyKey) {
 		if (propertyKey in renderingInstance.data) {
 			return;
 		}
@@ -196,7 +196,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				return this;
 			},
 
-			beforeUpdate: function() {
+			beforeUpdate: function () {
 				if (utils.isFunction(parameters.beforeUpdate)) {
 					parameters.beforeUpdate.call(this);
 				}
@@ -233,12 +233,12 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 	if (instance.type === 'view') {
 		instance.render = function () {
 			return renderInstance(this);
-		}
+		};
 
 	} else {
 		instance.render = function (runtime, componentDataFromTemplate) {
 			return renderComponent(runtime, this, componentDataFromTemplate);
-		}
+		};
 	}
 
 	if (targetElement && ! targetElement.getAttribute(selectorAttributeName)) {

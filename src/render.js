@@ -1,4 +1,3 @@
-import { Brackets } from './shared/variables';
 import { utils } from './shared/utils';
 import { createRenderingInstanceObject } from './renderingInstance';
 

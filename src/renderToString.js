@@ -4,7 +4,6 @@ import { tokenizeTemplate } from './compiler/tokenizeTemplate';
 import { compileTemplate } from './compiler/compileTemplate';
 import { getFilter } from './runtime/filters';
 import { getComponent } from './runtime/components';
-import { getRenderingInstance } from './renderingInstance';
 import { cacheManager } from './cacheManager';
 
 
