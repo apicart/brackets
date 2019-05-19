@@ -100,7 +100,10 @@ function bindPropertyDescriptors(renderingInstance) {
 			},
 			set: function (value) {
 				renderingInstance._data[propertyKey] = value;
-				renderingInstance.redraw();
+
+				if (renderingInstance.redrawingEnabled) {
+					renderingInstance.redraw();
+				}
 			}
 		});
 	});
@@ -193,6 +196,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 					parameters.mounted.call(this);
 				}
 
+				instance.isMounted = true;
+				instance.redrawingEnabled = true;
+
 				return this;
 			},
 
@@ -271,11 +277,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 	}
 
-	instance.redrawingEnabled = true;
 	renderingInstances[instance.instanceId] = instance;
 
 	instance.created();
-
 	return instance;
 }
 
@@ -299,6 +303,19 @@ function destroyChildrenInstances(instance) {
 
 
 /**
+ * @param {number} id
+ * @returns {{}|null}
+ */
+export function findRenderingInstance(id) {
+	var
+		selectedInstances = findRenderingInstances(id),
+		selectedInstancesKeys = Object.keys(selectedInstances);
+
+	return selectedInstancesKeys.length ? selectedInstances[selectedInstancesKeys[0]] : null;
+}
+
+
+/**
  * @param {string} id
  * @param {boolean|null} required
  * @return {*}
@@ -313,6 +330,23 @@ export function getRenderingInstance(id, required) {
 	}
 
 	return renderingInstances[id] || null;
+}
+
+
+/**
+ * @param {number} id
+ * @returns {[]}
+ */
+export function findRenderingInstances(id) {
+	var selectedInstances = {};
+
+	utils.each(renderingInstances, function (instanceId, instance) {
+		if (instanceId.includes(id)) {
+			selectedInstances[instanceId] = instance;
+		}
+	});
+
+	return selectedInstances;
 }
 
 
@@ -334,6 +368,19 @@ export function getRenderingInstances(type) {
 
 	return selectedInstances;
 }
+
+
+/**
+ * @param {{}} instance
+ */
+function mountInstance(instance) {
+	instance.mounted();
+
+	utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
+		var childrenInstance = getRenderingInstance(childrenInstanceId);
+		mountInstance(childrenInstance);
+	});
+};
 
 
 /**
@@ -362,7 +409,6 @@ function prepareInstanceForRendering(instance) {
 		var childrenInstance = getRenderingInstance(childrenInstanceId);
 		childrenInstance.el = instance.el.querySelector('[b-instance="' + childrenInstanceId + '"]');
 		prepareInstanceForRendering(childrenInstance);
-		childrenInstance.isMounted = true;
 	});
 }
 
@@ -371,10 +417,6 @@ function prepareInstanceForRendering(instance) {
  * @param {} instance
  */
 function renderInstance(instance) {
-	if ( ! instance.redrawingEnabled || ! instance.el) {
-		return;
-	}
-
 	destroyChildrenInstances(instance);
 
 	var
@@ -402,8 +444,7 @@ function renderInstance(instance) {
 		instance.updated();
 
 	} else {
-		instance.mounted();
-		instance.isMounted = true;
+		mountInstance(instance);
 	}
 
 	return instance;
