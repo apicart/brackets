@@ -731,16 +731,16 @@
 			utils.each(componentDataFromTemplate, function (key, value) {
 				instance.addData(key, value);
 			});
-	    }
+		}
 
 		instance.parentInstanceId = runtime.parentInstance.instanceId;
 
-	    var templateObject = renderToString(instance);
+		var templateObject = renderToString(instance);
 
 		instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;
-	    runtime.renderedComponents = runtime.renderedComponents.concat([instance.instanceId]);
+		runtime.renderedComponents = runtime.renderedComponents.concat([instance.instanceId]);
 
-	    return templateObject.templateString;
+		return templateObject.templateString;
 	}
 
 
@@ -828,7 +828,7 @@
 	 * @param {{}} renderingInstance
 	 */
 	function bindPropertyDescriptors(renderingInstance) {
-		utils.each(renderingInstance._data, function (propertyKey, propertyValue) {
+		utils.each(renderingInstance._data, function (propertyKey) {
 			if (propertyKey in renderingInstance.data) {
 				return;
 			}
@@ -839,7 +839,10 @@
 				},
 				set: function (value) {
 					renderingInstance._data[propertyKey] = value;
-					renderingInstance.redraw();
+
+					if (renderingInstance.redrawingEnabled) {
+						renderingInstance.redraw();
+					}
 				}
 			});
 		});
@@ -932,10 +935,13 @@
 						parameters.mounted.call(this);
 					}
 
+					instance.isMounted = true;
+					instance.redrawingEnabled = true;
+
 					return this;
 				},
 
-				beforeUpdate: function() {
+				beforeUpdate: function () {
 					if (utils.isFunction(parameters.beforeUpdate)) {
 						parameters.beforeUpdate.call(this);
 					}
@@ -1010,11 +1016,9 @@
 			throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
 		}
 
-		instance.redrawingEnabled = true;
 		renderingInstances[instance.instanceId] = instance;
 
 		instance.created();
-
 		return instance;
 	}
 
@@ -1038,6 +1042,19 @@
 
 
 	/**
+	 * @param {number} id
+	 * @returns {{}|null}
+	 */
+	function findRenderingInstance(id) {
+		var
+			selectedInstances = findRenderingInstances(id),
+			selectedInstancesKeys = Object.keys(selectedInstances);
+
+		return selectedInstancesKeys.length ? selectedInstances[selectedInstancesKeys[0]] : null;
+	}
+
+
+	/**
 	 * @param {string} id
 	 * @param {boolean|null} required
 	 * @return {*}
@@ -1052,6 +1069,23 @@
 		}
 
 		return renderingInstances[id] || null;
+	}
+
+
+	/**
+	 * @param {number} id
+	 * @returns {[]}
+	 */
+	function findRenderingInstances(id) {
+		var selectedInstances = {};
+
+		utils.each(renderingInstances, function (instanceId, instance) {
+			if (instanceId.includes(id)) {
+				selectedInstances[instanceId] = instance;
+			}
+		});
+
+		return selectedInstances;
 	}
 
 
@@ -1074,6 +1108,18 @@
 		return selectedInstances;
 	}
 
+
+	/**
+	 * @param {{}} instance
+	 */
+	function mountInstance(instance) {
+		instance.mounted();
+
+		utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
+			var childrenInstance = getRenderingInstance(childrenInstanceId);
+			mountInstance(childrenInstance);
+		});
+	}
 
 	/**
 	 * @param {{}} instance
@@ -1101,7 +1147,6 @@
 			var childrenInstance = getRenderingInstance(childrenInstanceId);
 			childrenInstance.el = instance.el.querySelector('[b-instance="' + childrenInstanceId + '"]');
 			prepareInstanceForRendering(childrenInstance);
-			childrenInstance.isMounted = true;
 		});
 	}
 
@@ -1110,10 +1155,6 @@
 	 * @param {} instance
 	 */
 	function renderInstance(instance) {
-		if ( ! instance.redrawingEnabled || ! instance.el) {
-			return;
-		}
-
 		destroyChildrenInstances(instance);
 
 		var
@@ -1141,8 +1182,7 @@
 			instance.updated();
 
 		} else {
-			instance.mounted();
-			instance.isMounted = true;
+			mountInstance(instance);
 		}
 
 		return instance;
@@ -1203,6 +1243,9 @@
 	Brackets.getMacros = getMacros;
 
 	Brackets.getRenderingInstance = getRenderingInstance;
+	Brackets.findRenderingInstance = findRenderingInstance;
+
+	Brackets.findRenderingInstances = findRenderingInstances;
 	Brackets.getRenderingInstances = getRenderingInstances;
 
 	Brackets.render = render;
