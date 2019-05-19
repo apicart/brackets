@@ -34,8 +34,8 @@
 - [Components](https://github.com/apicart/brackets/blob/master/readme.md#components)
 - [Complete Components Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-components-configuration)
 - [Complete Rendering Configuration](https://github.com/apicart/brackets/blob/master/readme.md#complete-rendering-configuration)
-- [Configuration Reserved Keywords](https://github.com/apicart/brackets/blob/master/readme.md#configuration-reserved-keywords)
 - [Rendering Instances](https://github.com/apicart/brackets/blob/master/readme.md#rendering-instances)
+- [Rendering Instances Lifecycle Hooks](https://github.com/apicart/brackets/blob/master/readme.md#rendering-instances-lifecycle-hooks)
 - [Security](https://github.com/apicart/brackets/blob/master/readme.md#security)
 
 
