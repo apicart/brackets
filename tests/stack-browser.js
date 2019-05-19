@@ -200,7 +200,7 @@
 					},
 					methods: {
 						updateNumber: function () {
-							this.number ++;
+							this.data.number ++;
 						}
 					},
 					template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
@@ -211,7 +211,7 @@
 				.render({
 					el: '.app'
 				});
-			
+
 			var
 				appElement1 = workspaceElement.querySelector('#app-1'),
 				appElement2 = workspaceElement.querySelector('#app-2'),
@@ -244,22 +244,19 @@
 			workspaceElement.innerHTML = `
 			<div class="app" id="app-1">{{component shareArticle2, articleName: 'Article 1'}}</div>
 		`;
-			var renderingInstanceHash;
 
 			Brackets
 				.addComponent('shareButton2', {
 					data: {
 						number: 0
 					},
+					instanceId: 'shareButton2',
 					resultCacheEnabled: true,
-					cacheKey: 'shareButtons2',
+					cacheKey: 'shareButton2',
 					methods: {
 						updateNumber: function () {
-							this.number ++;
+							this.data.number ++;
 						}
-					},
-					afterRender: function () {
-						renderingInstanceHash = this._hash;
 					},
 					template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
 				})
@@ -280,7 +277,7 @@
 
 			assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
 
-			assert.equal(Brackets.getRenderingInstance(renderingInstanceHash).data.number, 3);
+			assert.equal(Brackets.findRenderingInstance('shareButton2').data.number, 3);
 		});
 	});
 
@@ -308,24 +305,20 @@
 
 		it('Template from object, cache, text', function () {
 			workspaceElement.innerHTML = '<div id="app"></div>';
-			var renderingInstanceHash;
 
-			Brackets.render({
+			var appView = Brackets.render({
 				el: '#app',
 				template: '{{$text}}',
 				cacheKey: 'test',
 				resultCacheEnabled: true,
 				data: {
 					text: "I love️ Brackets!"
-				},
-				afterRender: function () {
-					renderingInstanceHash = this._hash;
 				}
 			});
 
 			assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
 			assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
-			assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', renderingInstanceHash) === 'object');
+			assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', appView.hash) === 'object');
 		});
 
 		it('Template from element, cache, text', function () {
@@ -365,25 +358,47 @@
 		});
 
 
-		it('After and before render methods.', function () {
+		it('Lifecycle methods.', function () {
 			workspaceElement.innerHTML = '<div id="app">{{$number}}</div>';
-			Brackets.render({
+			var appView = Brackets.render({
 				el: '#app',
 				data: {
 					number: 1
 				},
-				beforeRender: function () {
-					this.data.number += 1;
+				beforeCreate: function () {
+					this.data.number ++;
+					console.log(this.data.number);
 				},
-				afterRender: function () {
-					workspaceElement.querySelector(this.el).setAttribute('data-foo', 'bar');
+				created: function () {
+					console.log('fu');
+					this.data.number ++;
+					console.log('hu');
+					console.log(this.data.number);
+				},
+				beforeMount: function () {
+					this.data.number ++;
+					console.log(this.data.number);
+				},
+				mounted: function () {
+					console.log('tu');
+					this.el.setAttribute('data-foo', 'bar');
+				},
+				beforeUpdate: function () {
+					this.data.number ++;
+				},
+				updated: function () {
+					this.data.number ++;
 				}
 			});
 
 			var appElement = workspaceElement.querySelector('#app');
-
-			assert.equal(appElement.innerText, '2');
+			//assert.equal(appElement.innerText, '4');
 			assert.isTrue(appElement.hasAttribute('data-foo'));
+
+			/* appView.data.number = 1;
+			var appElement = workspaceElement.querySelector('#app');
+			assert.equal(appElement.innerText, '3');
+			assert.isFalse(appElement.hasAttribute('data-foo')); */
 		});
 
 		it('Event handlers.', function () {
@@ -405,7 +420,6 @@
 		`;
 
 			Brackets.render({
-				instanceId: 'tu',
 				el: '.app',
 				data: {
 					firstNumber: 0,
@@ -415,7 +429,7 @@
 				},
 				methods: {
 					increaseSecondNumber: function (event, data) {
-						this.secondNumber += parseInt(data);
+						this.data.secondNumber += parseInt(data);
 					}
 				}
 			});
@@ -436,9 +450,10 @@
 			appElement2.querySelector('.button-1').click();
 			appElement2.querySelector('.button-2').click();
 
-			assert.equal(appElement1.querySelector('span').innerText, '1-2');
-			assert.equal(appElement2.querySelector('span').innerText, '2-3');
-			assert.equal(appElement2.querySelector('.button-2').innerText, 'Clicked app 2!');
+			assert.equal(workspaceElement.querySelector('#app-1').querySelector('span').innerText, '1-2');
+			assert.equal(workspaceElement.querySelector('#app-2').querySelector('span').innerText, '2-3');
+			assert.equal(workspaceElement.querySelector('#app-2').querySelector('.button-2').innerText, 'Clicked app 2!');
+
 		});
 
 	});

@@ -19,7 +19,7 @@ describe('Components', function () {
 				},
 				methods: {
 					updateNumber: function () {
-						this.number ++;
+						this.data.number ++;
 					}
 				},
 				template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
@@ -30,7 +30,7 @@ describe('Components', function () {
 			.render({
 				el: '.app'
 			});
-		
+
 		var
 			appElement1 = workspaceElement.querySelector('#app-1'),
 			appElement2 = workspaceElement.querySelector('#app-2'),
@@ -63,22 +63,19 @@ describe('Components', function () {
 		workspaceElement.innerHTML = `
 			<div class="app" id="app-1">{{component shareArticle2, articleName: 'Article 1'}}</div>
 		`;
-		var renderingInstanceHash;
 
 		Brackets
 			.addComponent('shareButton2', {
 				data: {
 					number: 0
 				},
+				instanceId: 'shareButton2',
 				resultCacheEnabled: true,
-				cacheKey: 'shareButtons2',
+				cacheKey: 'shareButton2',
 				methods: {
 					updateNumber: function () {
-						this.number ++;
+						this.data.number ++;
 					}
-				},
-				afterRender: function () {
-					renderingInstanceHash = this._hash;
 				},
 				template: '<button b-on="click updateNumber()">Share ({{$number}})</button>'
 			})
@@ -99,7 +96,7 @@ describe('Components', function () {
 
 		assert.equal(appElement1.innerText, 'Article 1 => Share (0)');
 
-		assert.equal(Brackets.getRenderingInstance(renderingInstanceHash).data.number, 3);
+		assert.equal(Brackets.findRenderingInstance('shareButton2').data.number, 3);
 	});
 });
 
