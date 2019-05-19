@@ -5,7 +5,9 @@ import { addMacro, getMacros } from './runtime/macros';
 import {
 	createRenderingInstanceObject,
 	getRenderingInstance,
-	getRenderingInstances
+	getRenderingInstances,
+	findRenderingInstances,
+	findRenderingInstance
 } from './renderingInstance';
 import { addComponent, getComponent, getComponents } from './runtime/components';
 import { addFilter, getFilter, getFilters } from './runtime/filters';
@@ -27,7 +29,10 @@ Brackets.getComponents = getComponents;
 Brackets.addMacro = addMacro;
 Brackets.getMacros = getMacros;
 
+Brackets.findRenderingInstance = findRenderingInstance;
 Brackets.getRenderingInstance = getRenderingInstance;
+
+Brackets.findRenderingInstances = findRenderingInstances;
 Brackets.getRenderingInstances = getRenderingInstances;
 
 Brackets.render = render;
