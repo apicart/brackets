@@ -380,7 +380,7 @@ function mountInstance(instance) {
 		var childrenInstance = getRenderingInstance(childrenInstanceId);
 		mountInstance(childrenInstance);
 	});
-};
+}
 
 
 /**
