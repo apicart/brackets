@@ -1121,6 +1121,7 @@
 		});
 	}
 
+
 	/**
 	 * @param {{}} instance
 	 */
@@ -1242,8 +1243,8 @@
 	Brackets.addMacro = addMacro;
 	Brackets.getMacros = getMacros;
 
-	Brackets.getRenderingInstance = getRenderingInstance;
 	Brackets.findRenderingInstance = findRenderingInstance;
+	Brackets.getRenderingInstance = getRenderingInstance;
 
 	Brackets.findRenderingInstances = findRenderingInstances;
 	Brackets.getRenderingInstances = getRenderingInstances;
