@@ -140,6 +140,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			resultCacheEnabled: parameters.resultCacheEnabled || false,
 			type: parameters.type || 'view',
 			template: parameters.template,
+			watch: parameters.watch || {},
 			_data: parameters.data ? utils.cloneObject(parameters.data) : {},
 			_instanceId: null,
 			set instanceId(id) {
@@ -172,7 +173,6 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				renderInstance(this);
 				return this;
 			},
-			watch: parameters.watch || {},
 
 
 			beforeCreate: function () {
