@@ -98,8 +98,13 @@ function bindPropertyDescriptors(renderingInstance) {
 			get: function () {
 				return renderingInstance._data[propertyKey];
 			},
-			set: function (value) {
-				renderingInstance._data[propertyKey] = value;
+			set: function (newValue) {
+				var oldValue = renderingInstance._data[propertyKey];
+				renderingInstance._data[propertyKey] = newValue;
+
+				if (propertyKey in renderingInstance.watch) {
+					renderingInstance.watch[propertyKey].call(renderingInstance, newValue, oldValue);
+				}
 
 				if (renderingInstance.redrawingEnabled) {
 					renderingInstance.redraw();
@@ -167,6 +172,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				renderInstance(this);
 				return this;
 			},
+			watch: parameters.watch || {},
 
 
 			beforeCreate: function () {
