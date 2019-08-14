@@ -89,6 +89,12 @@ function bindEventHandlers(renderingInstance) {
  * @param {{}} renderingInstance
  */
 function bindPropertyDescriptors(renderingInstance) {
+	if ( ! renderingInstance._propertyDescriptorsInitialized) {
+		renderingInstance._data = utils.cloneObject(renderingInstance.data);
+		renderingInstance.data = {};
+		renderingInstance._propertyDescriptorsInitialized = true;
+	}
+
 	utils.each(renderingInstance._data, function (propertyKey) {
 		if (propertyKey in renderingInstance.data) {
 			return;
@@ -107,7 +113,9 @@ function bindPropertyDescriptors(renderingInstance) {
 				}
 
 				if (renderingInstance.redrawingEnabled) {
+					renderingInstance.redrawingEnabled = false;
 					renderingInstance.redraw();
+					renderingInstance.redrawingEnabled = true;
 				}
 			}
 		});
@@ -131,7 +139,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		instance = {
 			childrenInstancesIds: [],
 			cacheKey: parameters.cacheKey || null,
-			data: {},
+			data: parameters.data ? utils.cloneObject(parameters.data) : {},
 			hash: utils.generateHash(),
 			isMounted: false,
 			methods: {},
@@ -141,8 +149,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			type: parameters.type || 'view',
 			template: parameters.template,
 			watch: parameters.watch || {},
-			_data: parameters.data ? utils.cloneObject(parameters.data) : {},
+			_data: {},
 			_instanceId: null,
+			_dataObjectInitialized: false,
 			set instanceId(id) {
 				this._instanceId = id;
 			},
@@ -244,6 +253,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 	if (instance.type === 'view') {
 		instance.render = function () {
+			// Render view
 			return renderInstance(this);
 		};
 
@@ -253,7 +263,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		};
 	}
 
-	if (targetElement && ! targetElement.getAttribute(selectorAttributeName)) {
+	if (targetElement && targetElement instanceof Element && ! targetElement.getAttribute(selectorAttributeName)) {
 		targetElement.setAttribute(selectorAttributeName, instance.instanceId);
 	}
 
@@ -275,9 +285,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		instance.methods[key] = value;
 	});
 
-	bindPropertyDescriptors(instance);
-
 	instance.beforeCreate();
+
+	bindPropertyDescriptors(instance);
 
 	if (getRenderingInstance(instance.instanceId, false)) {
 		throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
@@ -404,13 +414,6 @@ function prepareInstanceForRendering(instance) {
 		instance.el.removeAttribute('b-instance');
 	}
 
-	if (instance.isMounted) {
-		instance.beforeUpdate();
-
-	} else {
-		instance.beforeMount();
-	}
-
 	utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
 		var childrenInstance = getRenderingInstance(childrenInstanceId);
 		childrenInstance.el = instance.el.querySelector('[b-instance="' + childrenInstanceId + '"]');
@@ -424,6 +427,13 @@ function prepareInstanceForRendering(instance) {
  */
 function renderInstance(instance) {
 	destroyChildrenInstances(instance);
+
+	if (instance.isMounted) {
+		instance.beforeUpdate();
+
+	} else {
+		instance.beforeMount();
+	}
 
 	var
 		templateObject = renderToString(instance),
