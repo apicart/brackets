@@ -27,6 +27,7 @@
 - [Get Started](https://github.com/apicart/brackets/blob/master/readme.md#getting-started)
 - [Cache](https://github.com/apicart/brackets/blob/master/readme.md#cache)
 - [Templates](https://github.com/apicart/brackets/blob/master/readme.md#templates)
+- [Data - watch hook](https://github.com/apicart/brackets/blob/master/readme.md#data-watch-hook)
 - [Events](https://github.com/apicart/brackets/blob/master/readme.md#events)
 - [Event Handlers](https://github.com/apicart/brackets/blob/master/readme.md#event-handlers)
 - [Filters](https://github.com/apicart/brackets/blob/master/readme.md#filters)
@@ -175,6 +176,28 @@ Brackets.render({
 		return this.data.version === 'a' ? '#templateA' : '#templateB';
 	}
 });
+</script>
+```
+
+## Data - watch hook
+Sometime it can be usefull to do something, when a value of a property in a data object changes. For that, you
+can use the `watch` property into which you can add a property with the same name like the property you want to watch.
+
+```
+<button b-on="click number++" class="app">{{$number}}</button>
+<script>
+	Brackets.render({
+		el: '.app',
+		data: {
+			number: 0
+		},
+		watch: {
+			number: function (newValue, oldValue) {
+				console.log(newValue, oldValue);
+				console.log(this) // Rendering instance
+			}
+		}
+	});
 </script>
 ```
 
