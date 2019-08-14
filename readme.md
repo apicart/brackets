@@ -96,7 +96,7 @@ var appView = Brackets.render({
 	}
 });
 
-appView.data.text = 'I ❤️ Brackets!'
+appView[0].data.text = 'I ❤️ Brackets!'
 </script>
 ```
 
@@ -219,7 +219,7 @@ Brackets.render({
 		number: 1
 	},
 	beforeCreate: function () {
-		this.data.number +;;
+		this.data.number ++;
 	},
 	mounted: function () {
 		alert("Generated number is " + this.data.number);
