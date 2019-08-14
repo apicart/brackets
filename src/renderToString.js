@@ -1,4 +1,3 @@
-import { cacheManager } from './cacheManager';
 import { renderTemplate } from './templateEngine/renderTemplate';
 
 

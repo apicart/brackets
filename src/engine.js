@@ -37,7 +37,7 @@ Brackets.findRenderingInstances = findRenderingInstances;
 Brackets.getRenderingInstances = getRenderingInstances;
 
 Brackets.render = render;
-Brackets.renderTemplate = renderTemplate
+Brackets.renderTemplate = renderTemplate;
 
 /**
  * @param {{}} parameters

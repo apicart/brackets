@@ -23,24 +23,13 @@ utils.getElementsAsArray = function (elementOrSelector) {
 		targetElements = document.querySelectorAll(elementOrSelector);
 
 	} else if (elementOrSelector instanceof Element) {
-		targetElements = [element];
+		targetElements = [elementOrSelector];
 
 	} else if (elementOrSelector instanceof NodeList || Array.isArray(elementOrSelector)) {
 		targetElements = elementOrSelector;
 
 	} else {
 		throw new Error('Brackets: unsupported type for parameter el.');
-	}
-
-	if (targetElements.length > 1
-		&& typeof parameters !== 'undefined'
-		&& parameters.cacheKey
-		&& ! parameters.template
-	) {
-		throw new Error(
-			'Brackets: you must provide a single template for \''
-			+ parameters.cacheKey + '\' cacheKey because multiple target elements were found.'
-		);
 	}
 
 	return targetElements;

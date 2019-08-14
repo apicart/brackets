@@ -8,6 +8,16 @@ import { createRenderingInstanceObject } from './renderingInstance';
 export function render(parameters) {
 	var targetElements = utils.getElementsAsArray(parameters.el);
 
+	if (targetElements.length > 1
+		&& parameters.cacheKey
+		&& ! parameters.template
+	) {
+		throw new Error(
+			'Brackets: you must provide a single template for \''
+			+ parameters.cacheKey + '\' cacheKey because multiple target elements were found.'
+		);
+	}
+
 	if ( ! targetElements) {
 		return;
 	}

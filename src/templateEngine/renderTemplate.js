@@ -1,10 +1,10 @@
-import { cacheManager } from "../cacheManager";
-import { getComponent } from "../runtime/components";
-import { utils } from "../shared/utils";
-import { tokenizeTemplate } from "./tokenizeTemplate";
-import { compileTemplate } from "./compileTemplate";
-import { getFilter } from "../runtime/filters";
-import { templateLiteralsEnabled, eventHandlersAttributeName, selectorAttributeName } from "../shared/variables";
+import { cacheManager } from '../cacheManager';
+import { getComponent } from '../runtime/components';
+import { utils } from '../shared/utils';
+import { tokenizeTemplate } from './tokenizeTemplate';
+import { compileTemplate } from './compileTemplate';
+import { getFilter } from '../runtime/filters';
+import { templateLiteralsEnabled, eventHandlersAttributeName, selectorAttributeName } from '../shared/variables';
 
 var
 	TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
@@ -54,7 +54,7 @@ export function renderTemplate(template, parameters)
 		templateParametersNames = ['_runtime'];
 
 	utils.each(parameters.runtime, function (key, value) {
-		runtime[key] = value
+		runtime[key] = value;
 	});
 
 	if ( ! templateFunction) {
