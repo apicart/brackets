@@ -26,6 +26,37 @@
 	};
 
 
+	utils.getElementsAsArray = function (elementOrSelector) {
+		var targetElements = [];
+
+		if (typeof elementOrSelector === 'string') {
+			targetElements = document.querySelectorAll(elementOrSelector);
+
+		} else if (elementOrSelector instanceof Element) {
+			targetElements = [element];
+
+		} else if (elementOrSelector instanceof NodeList || Array.isArray(elementOrSelector)) {
+			targetElements = elementOrSelector;
+
+		} else {
+			throw new Error('Brackets: unsupported type for parameter el.');
+		}
+
+		if (targetElements.length > 1
+			&& typeof parameters !== 'undefined'
+			&& parameters.cacheKey
+			&& ! parameters.template
+		) {
+			throw new Error(
+				'Brackets: you must provide a single template for \''
+				+ parameters.cacheKey + '\' cacheKey because multiple target elements were found.'
+			);
+		}
+
+		return targetElements;
+	};
+
+
 	/**
 	 * @returns {{}}
 	 */
@@ -155,6 +186,10 @@
 		macros = {
 			break: 'break;',
 			breakIf: 'if (#0) break;',
+			capture: function (variableName) {
+				return 'var ' + variableName +' = (function () {var _template = ' + templateLiteral + templateLiteral + ';';
+			},
+			'/capture': 'return _template;})();',
 			continue: 'continue;',
 			continueIf: 'if (#0) continue;',
 			component: function (parameters) {
@@ -184,6 +219,12 @@
 				return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + callbackFunctionParameters + ') {';
 			},
 			'/foreach': '});',
+			first: 'if (this.isFirst()) {',
+			'/first': '}',
+			last: 'if (this.isLast()) {',
+			'/last': '}',
+			sep: 'if (!this.isLast()) {',
+			'/sep': '}',
 			if: 'if (#0) {',
 			'/if': '}',
 			js: '#0;',
@@ -252,6 +293,7 @@
 	 * @return {{macros: [], text: []}}
 	 */
 	function tokenizeTemplate(template) {
+		// Todo zkontrolovat, jestl ije potřeba mít macro tokens a text tokens. Zda nestačí jen jedno pole a přiřadit typ
 		var
 			macroTokens = [],
 			textTokens = [],
@@ -339,6 +381,66 @@
 
 
 	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
+
+	var cacheManager = {
+		cache: {}
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @returns {*}
+	 */
+	cacheManager.getCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
+			return null;
+		}
+
+		return cacheManager.cache[region][cacheKey];
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @param {*} cache
+	 * @returns {{cache: {}}}
+	 */
+	cacheManager.setCache = function (region, cacheKey, cache) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
+			cacheManager.cache[region] = {};
+		}
+
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
+			cacheManager.cache[region][cacheKey] = cache;
+		}
+
+		return cacheManager;
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @returns {boolean}
+	 */
+	cacheManager.hasCacheRegion = function (region) {
+		return region in cacheManager.cache;
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @returns {boolean}
+	 */
+	cacheManager.hasCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
+			return false;
+		}
+
+		return cacheKey in cacheManager.cache[region];
+	};
 
 	/**
 	 * @param {[]} tokenMatchArray
@@ -512,88 +614,34 @@
 		});
 	});
 
-	var cacheManager = {
-		cache: {}
-	};
-
-
-	/**
-	 * @param {string} region
-	 * @param {string} cacheKey
-	 * @returns {*}
-	 */
-	cacheManager.getCache = function (region, cacheKey) {
-		if ( ! cacheManager.hasCache(region, cacheKey)) {
-			return null;
-		}
-
-		return cacheManager.cache[region][cacheKey];
-	};
-
-
-	/**
-	 * @param {string} region
-	 * @param {string} cacheKey
-	 * @param {*} cache
-	 * @returns {{cache: {}}}
-	 */
-	cacheManager.setCache = function (region, cacheKey, cache) {
-		if ( ! cacheManager.hasCacheRegion(region)) {
-			cacheManager.cache[region] = {};
-		}
-
-		if ( ! cacheManager.hasCache(region, cacheKey)) {
-			cacheManager.cache[region][cacheKey] = cache;
-		}
-
-		return cacheManager;
-	};
-
-
-	/**
-	 * @param {string} region
-	 * @returns {boolean}
-	 */
-	cacheManager.hasCacheRegion = function (region) {
-		return region in cacheManager.cache;
-	};
-
-
-	/**
-	 * @param {string} region
-	 * @param {string} cacheKey
-	 * @returns {boolean}
-	 */
-	cacheManager.hasCache = function (region, cacheKey) {
-		if ( ! cacheManager.hasCacheRegion(region)) {
-			return false;
-		}
-
-		return cacheKey in cacheManager.cache[region];
-	};
-
 	var
 		TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
 		TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
 
+	function renderTemplate(template, parameters)
+	{
+		// TODO Dořešit cachování - padají testy
+		if (parameters.resultCacheEnabled
+			&& parameters.hash
+			&& cacheManager.hasCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash)
+		) {
+			return cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash);
+		}
 
-	/**
-	 * @param renderingInstance
-	 * @returns {{}}
-	 */
-	function generateTemplateString(renderingInstance) {
 		var
-			cacheKeyIsSet = typeof renderingInstance.cacheKey === 'string',
+			cacheKeyIsSet = typeof parameters.cacheKey === 'string',
 			templateFunction = cacheKeyIsSet
-				? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey)
+				? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
 				: null,
-			data = renderingInstance._data,
+			data = parameters.data,
 			runtime = {
 				renderComponent: function (name, componentDataFromTemplate) {
 					return getComponent(name).render(this, componentDataFromTemplate);
 				},
+				renderTemplate: renderTemplate,
 				getFilter: getFilter,
 				renderedComponents: [],
+				blocks: {},
 				utils: utils,
 				templateAdd: function (data, filter) {
 					if (typeof data === 'undefined') {
@@ -608,24 +656,25 @@
 					filter = filter === true ? 'escape' : filter;
 
 					return filter ? this.getFilter(filter).apply(null, data) : data;
-				},
-				parentInstance: renderingInstance
+				}
 			},
-			template = renderingInstance.template,
 			templateArguments = [runtime],
 			templateParametersNames = ['_runtime'];
+
+		utils.each(parameters.runtime, function (key, value) {
+			runtime[key] = value;
+		});
 
 		if ( ! templateFunction) {
 			if ( ! templateLiteralsEnabled) {
 				template = template.replace(/(?:\r\n|\r|\n)/g, ' ');
 				template = template.replace(/'/g, '\'');
 			}
-
 			var tokens = tokenizeTemplate(template);
 			templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
 
 			if (cacheKeyIsSet) {
-				cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, renderingInstance.cacheKey, templateFunction);
+				cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
 			}
 		}
 
@@ -637,20 +686,21 @@
 
 		templateString = templateString.replace(
 			new RegExp(eventHandlersAttributeName + '=', 'g'),
-			eventHandlersAttributeName + '-' + renderingInstance.hash + '='
+			parameters.hash ? eventHandlersAttributeName + '-' + parameters.hash + '=' : eventHandlersAttributeName + '='
 		);
 
-		if (renderingInstance.type === 'component') {
+		if (parameters.type === 'component') {
 			var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 			if (parentElement) {
-				parentElement.setAttribute(selectorAttributeName, renderingInstance.instanceId);
+				parentElement.setAttribute(selectorAttributeName, parameters.id);
 				templateString = parentElement.outerHTML;
 			}
 		}
 
-		if (renderingInstance.resultCacheEnabled) {
-			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash, {
+		// Todo, nebude se čistit cache. Při destoy instance je potřeba smazat cache instance či komponenty
+		if (parameters.resultCacheEnabled) {
+			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash, {
 				templateString: templateString,
 				templateRuntime: runtime
 			});
@@ -662,20 +712,22 @@
 		};
 	}
 
-
 	/**
 	 * @param {{}} renderingInstance
 	 * @return {{}}
 	 */
 	function renderToString(renderingInstance) {
-		var templateObject = renderingInstance.resultCacheEnabled
-			? cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, renderingInstance.hash)
-			: null;
-
-		if ( ! templateObject) {
-			templateObject = generateTemplateString(renderingInstance);
-		}
-		return templateObject;
+		return renderTemplate(renderingInstance.template, {
+			cacheKey: renderingInstance.cacheKey,
+			data: renderingInstance._data,
+			id: renderingInstance.instanceId,
+			hash: renderingInstance.hash,
+			type: renderingInstance.type,
+			resultCacheEnabled: renderingInstance.resultCacheEnabled,
+			runtime: {
+				parentInstance: renderingInstance
+			}
+		});
 	}
 
 	var components = {
@@ -734,6 +786,10 @@
 		}
 
 		instance.parentInstanceId = runtime.parentInstance.instanceId;
+
+		if ( ! instance.isMounted) {
+			instance.beforeMount();
+		}
 
 		var templateObject = renderToString(instance);
 
@@ -828,6 +884,12 @@
 	 * @param {{}} renderingInstance
 	 */
 	function bindPropertyDescriptors(renderingInstance) {
+		if ( ! renderingInstance._propertyDescriptorsInitialized) {
+			renderingInstance._data = utils.cloneObject(renderingInstance.data);
+			renderingInstance.data = {};
+			renderingInstance._propertyDescriptorsInitialized = true;
+		}
+
 		utils.each(renderingInstance._data, function (propertyKey) {
 			if (propertyKey in renderingInstance.data) {
 				return;
@@ -837,11 +899,18 @@
 				get: function () {
 					return renderingInstance._data[propertyKey];
 				},
-				set: function (value) {
-					renderingInstance._data[propertyKey] = value;
+				set: function (newValue) {
+					var oldValue = renderingInstance._data[propertyKey];
+					renderingInstance._data[propertyKey] = newValue;
+
+					if (propertyKey in renderingInstance.watch) {
+						renderingInstance.watch[propertyKey].call(renderingInstance, newValue, oldValue);
+					}
 
 					if (renderingInstance.redrawingEnabled) {
+						renderingInstance.redrawingEnabled = false;
 						renderingInstance.redraw();
+						renderingInstance.redrawingEnabled = true;
 					}
 				}
 			});
@@ -865,7 +934,7 @@
 			instance = {
 				childrenInstancesIds: [],
 				cacheKey: parameters.cacheKey || null,
-				data: {},
+				data: parameters.data ? utils.cloneObject(parameters.data) : {},
 				hash: utils.generateHash(),
 				isMounted: false,
 				methods: {},
@@ -874,8 +943,10 @@
 				resultCacheEnabled: parameters.resultCacheEnabled || false,
 				type: parameters.type || 'view',
 				template: parameters.template,
-				_data: parameters.data ? utils.cloneObject(parameters.data) : {},
+				watch: parameters.watch || {},
+				_data: {},
 				_instanceId: null,
+				_dataObjectInitialized: false,
 				set instanceId(id) {
 					this._instanceId = id;
 				},
@@ -977,6 +1048,7 @@
 
 		if (instance.type === 'view') {
 			instance.render = function () {
+				// Render view
 				return renderInstance(this);
 			};
 
@@ -986,7 +1058,7 @@
 			};
 		}
 
-		if (targetElement && ! targetElement.getAttribute(selectorAttributeName)) {
+		if (targetElement && targetElement instanceof Element && ! targetElement.getAttribute(selectorAttributeName)) {
 			targetElement.setAttribute(selectorAttributeName, instance.instanceId);
 		}
 
@@ -1008,9 +1080,9 @@
 			instance.methods[key] = value;
 		});
 
-		bindPropertyDescriptors(instance);
-
 		instance.beforeCreate();
+
+		bindPropertyDescriptors(instance);
 
 		if (getRenderingInstance(instance.instanceId, false)) {
 			throw new Error('Brackets: Rendering instance "' + instance.instanceId +'" is already defined.');
@@ -1137,13 +1209,6 @@
 			instance.el.removeAttribute('b-instance');
 		}
 
-		if (instance.isMounted) {
-			instance.beforeUpdate();
-
-		} else {
-			instance.beforeMount();
-		}
-
 		utils.each(instance.childrenInstancesIds, function (key, childrenInstanceId) {
 			var childrenInstance = getRenderingInstance(childrenInstanceId);
 			childrenInstance.el = instance.el.querySelector('[b-instance="' + childrenInstanceId + '"]');
@@ -1157,6 +1222,13 @@
 	 */
 	function renderInstance(instance) {
 		destroyChildrenInstances(instance);
+
+		if (instance.isMounted) {
+			instance.beforeUpdate();
+
+		} else {
+			instance.beforeMount();
+		}
 
 		var
 			templateObject = renderToString(instance),
@@ -1193,27 +1265,7 @@
 	 * @param {{}} parameters
 	 */
 	function render(parameters) {
-		var targetElements;
-
-		if (typeof parameters.el === 'string') {
-			targetElements = document.querySelectorAll(parameters.el);
-
-		} else if (parameters.el instanceof Element) {
-			targetElements = [parameters.el];
-
-		} else if (parameters.el instanceof NodeList || Array.isArray(parameters.el)) {
-			targetElements = parameters.el;
-
-		} else {
-			throw new Error('Brackets: unsupported type for parameter el.');
-		}
-
-		if (targetElements.length > 1 && parameters.cacheKey && ! parameters.template) {
-			throw new Error(
-				'Brackets: you must provide a single template for \''
-				+ parameters.cacheKey + '\' cacheKey because multiple target elements were found.'
-			);
-		}
+		var targetElements = utils.getElementsAsArray(parameters.el);
 
 		if ( ! targetElements) {
 			return;
@@ -1225,7 +1277,7 @@
 			renderedInstances.push(createRenderingInstanceObject(parameters, targetElement).render());
 		});
 
-		return renderedInstances.length > 1 ? renderedInstances : renderedInstances[0];
+		return renderedInstances;
 	}
 
 	Brackets.utils = utils;
@@ -1250,6 +1302,7 @@
 	Brackets.getRenderingInstances = getRenderingInstances;
 
 	Brackets.render = render;
+	Brackets.renderTemplate = renderTemplate;
 
 	/**
 	 * @param {{}} parameters
