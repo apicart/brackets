@@ -19,7 +19,7 @@
 </h1>
 
 - Small, flexible, easy to use, component-oriented javascript template engine.
-- ✅ **14 Kb minified (6 Kb Gzipped)**
+- ✅ **15 Kb minified (5 Kb Gzipped)**
 - ✅ Supports IE 10 +
 - ✅ [TRY IT ON CODEPEN](https://codepen.io/apicart/pen/OraYJj)
 
@@ -183,7 +183,7 @@ Brackets.render({
 Sometime it can be usefull to do something, when a value of a property in a data object changes. For that, you
 can use the `watch` property into which you can add a property with the same name like the property you want to watch.
 
-```
+```html
 <button b-on="click number++" class="app">{{$number}}</button>
 <script>
 	Brackets.render({
@@ -346,15 +346,59 @@ There are the following macros defined by default.
          <td style="text-align:center">Conditional jump to the next iteration</td>
       </tr>
 	  <tr>
-         <td style="text-align:center">{{break}</td>
+         <td style="text-align:center">{{break}}</td>
          <td style="text-align:center">Loop break</td>
       </tr>
       <tr>
-         <td style="text-align:center">{{breakIf condition}</td>
+         <td style="text-align:center">{{breakIf condition}}</td>
          <td style="text-align:center">Conditional loop break</td>
+      </tr>
+	  <tr>
+         <td style="text-align:center">{{sep}}...{{/sep}}</td>
+		 <td style="text-align:center">Alias to <code>if ( ! this.isLast()</code> (this = iterator object)</td>
+      </tr>
+	  <tr>
+	 	<td style="text-align:center">{{last}}...{{/last}}</td>
+		<td style="text-align:center">Alias to <code>if (this.isLast()</code> (this = iterator object)</td>
+      </tr>
+	  <tr>
+         <td style="text-align:center">{{first}}...{{/last}}</td>
+	  	<td style="text-align:center">Alias to <code>if (this.isFirst()</code>(this = iterator object)</td>
       </tr>
    </tbody>
 </table>
+
+```html
+<div id="app">
+	{{foreach letters as key,letter}}
+		{{first}}<strong>{{/first}}
+		{{last}}<em>{{/last}}
+
+		{{$key}} => {{$letter}}
+
+		{{last}}</em>{{/last}}
+		{{first}}</strong>{{/first}}
+
+		{{sep}}<br>{{/sep}}
+	{{/foreach}}
+</div>
+<script>
+	Brackets.render({
+		el: '#app',
+		data: {
+			letters: ['a', 'b', 'c']
+		}
+	})
+</script>
+```
+
+```html
+<strong>0 => a</strong>
+<br>
+1 => b
+<br>
+<em>2 => c</em>
+```
 
 ### Variables
 <table>
@@ -363,8 +407,38 @@ There are the following macros defined by default.
          <td style="text-align:center">{{var foo = value}}</td>
          <td style="text-align:center">Creates variable</td>
       </tr>
+	 <tr>
+         <td style="text-align:center">{{capture myVariable}}...{{/capture}}</td>
+         <td style="text-align:center">Captures output created between blocks into the defined variable</td>
+      </tr>
    </tbody>
 </table>
+
+```html
+<div id="app"></div>
+<script type="text/plain" id="app-template">
+	{{capture numbers}}
+		{{for i = 0; i < 3; i++}}
+			{{$i}}
+		{{/for}}
+	{{/capture}}
+
+	First line: {{$numbers}}
+	<br>
+	Second line: {{$numbers}}
+</script>
+<script>
+	Brackets.render({
+		el: '#app',
+		template: '#app-template'
+	})
+</script>
+```
+```
+First line: 0 1 2 
+Second line: 0 1 2
+```
+
 
 ### Other
 <table>
