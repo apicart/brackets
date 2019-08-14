@@ -1,10 +1,14 @@
-import { Brackets } from '../shared/variables';
+import { Brackets, templateLiteral } from '../shared/variables';
 
 
 var
 	macros = {
 		break: 'break;',
 		breakIf: 'if (#0) break;',
+		capture: function (variableName) {
+			return 'var ' + variableName +' = (function () {var _template = ' + templateLiteral + templateLiteral + ';';
+		},
+		'/capture': 'return _template;})();',
 		continue: 'continue;',
 		continueIf: 'if (#0) continue;',
 		component: function (parameters) {
@@ -34,6 +38,12 @@ var
 			return '_runtime.utils.each(' + parameters[0].trim() + ', function (' + callbackFunctionParameters + ') {';
 		},
 		'/foreach': '});',
+		first: 'if (this.isFirst()) {',
+		'/first': '}',
+		last: 'if (this.isLast()) {',
+		'/last': '}',
+		sep: 'if (!this.isLast()) {',
+		'/sep': '}',
 		if: 'if (#0) {',
 		'/if': '}',
 		js: '#0;',
