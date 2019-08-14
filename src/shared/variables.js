@@ -1,6 +1,6 @@
 import { utils } from './utils';
-import { initTemplateTokenizer } from '../compiler/tokenizeTemplate';
 import { initMacros } from '../runtime/macros';
+import { initTemplateTokenizer } from '../templateEngine/tokenizeTemplate';
 
 export var Brackets = {
 	config: {

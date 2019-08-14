@@ -61,6 +61,10 @@ export function renderComponent(runtime, instance, componentDataFromTemplate) {
 
 	instance.parentInstanceId = runtime.parentInstance.instanceId;
 
+	if ( ! instance.isMounted) {
+		instance.beforeMount();
+	}
+
 	var templateObject = renderToString(instance);
 
 	instance.childrenInstancesIds = templateObject.templateRuntime.renderedComponents;

@@ -13,6 +13,7 @@ import { addComponent, getComponent, getComponents } from './runtime/components'
 import { addFilter, getFilter, getFilters } from './runtime/filters';
 import { utils } from './shared/utils';
 import { cacheManager } from './cacheManager';
+import { renderTemplate } from './templateEngine/renderTemplate';
 
 Brackets.utils = utils;
 Brackets.cacheManager = cacheManager;
@@ -36,6 +37,7 @@ Brackets.findRenderingInstances = findRenderingInstances;
 Brackets.getRenderingInstances = getRenderingInstances;
 
 Brackets.render = render;
+Brackets.renderTemplate = renderTemplate
 
 /**
  * @param {{}} parameters
