@@ -314,7 +314,7 @@
 				data: {
 					text: "I love️ Brackets!"
 				}
-			});
+			})[0];
 
 			assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
 			assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
@@ -363,42 +363,38 @@
 			var appView = Brackets.render({
 				el: '#app',
 				data: {
-					number: 1
+					number: 1,
+					v: 'b',
 				},
 				beforeCreate: function () {
 					this.data.number ++;
-					console.log(this.data.number);
 				},
 				created: function () {
-					console.log('fu');
 					this.data.number ++;
-					console.log('hu');
-					console.log(this.data.number);
 				},
 				beforeMount: function () {
 					this.data.number ++;
-					console.log(this.data.number);
 				},
 				mounted: function () {
-					console.log('tu');
 					this.el.setAttribute('data-foo', 'bar');
 				},
 				beforeUpdate: function () {
 					this.data.number ++;
 				},
 				updated: function () {
-					this.data.number ++;
+					this.el.setAttribute('data-bar', 'foo');
 				}
-			});
+			})[0];
 
 			var appElement = workspaceElement.querySelector('#app');
-			//assert.equal(appElement.innerText, '4');
+			assert.equal(appElement.innerText, '4');
 			assert.isTrue(appElement.hasAttribute('data-foo'));
-
-			/* appView.data.number = 1;
+			appView.data.number = 1;
 			var appElement = workspaceElement.querySelector('#app');
-			assert.equal(appElement.innerText, '3');
-			assert.isFalse(appElement.hasAttribute('data-foo')); */
+			assert.equal(appElement.innerText, '2');
+			assert.isFalse(appElement.hasAttribute('data-foo'));
+			assert.isTrue(appElement.hasAttribute('data-bar'));
+			assert.isTrue(appElement.getAttribute('data-bar') === 'foo');
 		});
 
 		it('Event handlers.', function () {
