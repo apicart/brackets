@@ -57,3 +57,15 @@ cacheManager.hasCache = function (region, cacheKey) {
 
 	return cacheKey in cacheManager.cache[region];
 };
+
+
+/**
+ * @param {string} region
+ * @param {string} cacheKey
+ * @returns {void}
+ */
+cacheManager.clearCache = function (region, cacheKey) {
+	if (cacheManager.hasCache(region, cacheKey)) {
+		delete cacheManager.cache[region][cacheKey];
+	}
+}
