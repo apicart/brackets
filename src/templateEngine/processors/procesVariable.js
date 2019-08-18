@@ -27,7 +27,7 @@ export function processVariable(tokenMatchArray) {
 				return;
 			}
 
-			filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
+			filterParameters = utils.isString(filterArray[1]) ? filterArray[1].split(',') : [];
 			filterParameters.unshift(variable);
 
 			variable = '_templateAdd([' + filterParameters + '], \'' + filterName + '\')';

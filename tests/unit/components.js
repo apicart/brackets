@@ -71,7 +71,6 @@ describe('Components', function () {
 				},
 				instanceId: 'shareButton2',
 				resultCacheEnabled: true,
-				cacheKey: 'shareButton2',
 				methods: {
 					updateNumber: function () {
 						this.data.number ++;

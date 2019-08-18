@@ -7,10 +7,9 @@ import { renderTemplate } from './templateEngine/renderTemplate';
  */
 export function renderToString(renderingInstance) {
 	return renderTemplate(renderingInstance.template, {
-		cacheKey: renderingInstance.cacheKey,
+		cacheKey: renderingInstance._instanceId ? renderingInstance._instanceId : null,
+		uniqueId: renderingInstance.instanceId,
 		data: renderingInstance._data,
-		id: renderingInstance.instanceId,
-		hash: renderingInstance.hash,
 		type: renderingInstance.type,
 		resultCacheEnabled: renderingInstance.resultCacheEnabled,
 		runtime: {

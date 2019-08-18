@@ -12,16 +12,15 @@ var
 
 export function renderTemplate(template, parameters)
 {
-	// TODO Dořešit cachování - padají testy
 	if (parameters.resultCacheEnabled
-		&& parameters.hash
-		&& cacheManager.hasCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash)
+		&& parameters.uniqueId
+		&& cacheManager.hasCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId)
 	) {
-		return cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash);
+		return cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId);
 	}
 
 	var
-		cacheKeyIsSet = typeof parameters.cacheKey === 'string',
+		cacheKeyIsSet = utils.isString(parameters.cacheKey),
 		templateFunction = cacheKeyIsSet
 			? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
 			: null,
@@ -36,7 +35,7 @@ export function renderTemplate(template, parameters)
 			blocks: {},
 			utils: utils,
 			templateAdd: function (data, filter) {
-				if (typeof data === 'undefined') {
+				if ( ! utils.isDefined(data)) {
 					return '';
 				}
 
@@ -64,7 +63,6 @@ export function renderTemplate(template, parameters)
 		}
 		var tokens = tokenizeTemplate(template);
 		templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
-
 		if (cacheKeyIsSet) {
 			cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
 		}
@@ -78,21 +76,22 @@ export function renderTemplate(template, parameters)
 
 	templateString = templateString.replace(
 		new RegExp(eventHandlersAttributeName + '=', 'g'),
-		parameters.hash ? eventHandlersAttributeName + '-' + parameters.hash + '=' : eventHandlersAttributeName + '='
+		parameters.uniqueId
+			? eventHandlersAttributeName + '-' + parameters.uniqueId + '='
+			: eventHandlersAttributeName + '='
 	);
 
 	if (parameters.type === 'component') {
 		var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 		if (parentElement) {
-			parentElement.setAttribute(selectorAttributeName, parameters.id);
+			parentElement.setAttribute(selectorAttributeName, parameters.uniqueId);
 			templateString = parentElement.outerHTML;
 		}
 	}
 
-	// Todo, nebude se čistit cache. Při destoy instance je potřeba smazat cache instance či komponenty
 	if (parameters.resultCacheEnabled) {
-		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash, {
+		cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId, {
 			templateString: templateString,
 			templateRuntime: runtime
 		});

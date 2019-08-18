@@ -21,7 +21,7 @@ function bindEventHandlers(renderingInstance) {
 	}
 
 	var
-		eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.hash,
+		eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.instanceId,
 		eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 		eventHandlers = [];
 
@@ -42,7 +42,7 @@ function bindEventHandlers(renderingInstance) {
 
 				var eventNameMatch = event.match(/^(\S+)/);
 
-				if ( ! eventNameMatch || typeof eventNameMatch[1] === 'undefined') {
+				if ( ! eventNameMatch || ! utils.isDefined(eventNameMatch[1])) {
 					return;
 				}
 
@@ -131,14 +131,13 @@ function bindPropertyDescriptors(renderingInstance) {
 export function createRenderingInstanceObject(parameters, targetElement) {
 	parameters = utils.cloneObject(parameters);
 
-	if (typeof parameters.template === 'function') {
+	if (utils.isFunction(parameters.template)) {
 		parameters.template = parameters.template.call(parameters);
 	}
 
 	var
 		instance = {
 			childrenInstancesIds: [],
-			cacheKey: parameters.cacheKey || null,
 			data: parameters.data ? utils.cloneObject(parameters.data) : {},
 			hash: utils.generateHash(),
 			isMounted: false,
@@ -151,7 +150,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 			watch: parameters.watch || {},
 			_data: {},
 			_instanceId: null,
-			_dataObjectInitialized: false,
+			_propertyDescriptorsInitialized: false,
 			set instanceId(id) {
 				this._instanceId = id;
 			},
@@ -173,6 +172,9 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 
 				destroyChildrenInstances(this);
 				delete renderingInstances[this.instanceId];
+
+				cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters._instanceId);
+				cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.instanceId);
 
 				this.destroyed();
 
@@ -263,7 +265,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 		};
 	}
 
-	if (targetElement && targetElement instanceof Element && ! targetElement.getAttribute(selectorAttributeName)) {
+	if (targetElement && utils.isElement(targetElement) && ! targetElement.getAttribute(selectorAttributeName)) {
 		targetElement.setAttribute(selectorAttributeName, instance.instanceId);
 	}
 
@@ -296,6 +298,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 	renderingInstances[instance.instanceId] = instance;
 
 	instance.created();
+
 	return instance;
 }
 
@@ -403,7 +406,7 @@ function mountInstance(instance) {
  * @param {{}} instance
  */
 function prepareInstanceForRendering(instance) {
-	var instanceElementIsElement = instance.el instanceof Element;
+	var instanceElementIsElement = utils.isElement(instance.el);
 
 	if (instanceElementIsElement) {
 		bindEventHandlers(instance);
@@ -439,7 +442,7 @@ function renderInstance(instance) {
 		templateObject = renderToString(instance),
 		templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
 		templateParentNodeFirstChild = templateParentNode.body.firstChild,
-		replacingElement = templateParentNodeFirstChild instanceof Element
+		replacingElement = utils.isElement(templateParentNodeFirstChild)
 			? templateParentNodeFirstChild
 			: templateParentNode.body.innerHTML,
 		elementToBeReplaced = instance.el;
@@ -449,7 +452,7 @@ function renderInstance(instance) {
 
 	prepareInstanceForRendering(instance);
 
-	if (replacingElement instanceof Element) {
+	if (utils.isElement(replacingElement)) {
 		elementToBeReplaced.parentElement.replaceChild(instance.el, elementToBeReplaced);
 
 	} else {

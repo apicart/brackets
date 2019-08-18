@@ -14,7 +14,6 @@ var
  * @return {{macros: [], text: []}}
  */
 export function tokenizeTemplate(template) {
-	// Todo zkontrolovat, jestl ije potřeba mít macro tokens a text tokens. Zda nestačí jen jedno pole a přiřadit typ
 	var
 		macroTokens = [],
 		textTokens = [],
@@ -34,7 +33,7 @@ export function tokenizeTemplate(template) {
 					return;
 				}
 
-				if (typeof tokenPart !== 'undefined') {
+				if (utils.isDefined(tokenPart)) {
 					tokenArray.push(tokenPart);
 				}
 			});

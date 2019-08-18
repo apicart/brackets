@@ -14,7 +14,7 @@ export function processMacro(tokenMatchArray) {
 
 	tokenMatchArray.shift();
 
-	if (typeof macros[macroName] === 'string') {
+	if (utils.isString(macros[macroName])) {
 		parsedToken = macros[macroName];
 
 		utils.each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {

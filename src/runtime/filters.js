@@ -40,7 +40,7 @@ export function getFilters() {
 }
 
 
-addFilter('escape', function (variable) {
+addFilter('escape', function (variable, context) {
 	var entityMap = {
 		'"': '&quot;',
 		'&': '&amp;',
