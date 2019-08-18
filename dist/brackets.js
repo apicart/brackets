@@ -26,13 +26,17 @@
 	};
 
 
+	/**
+	 * @param {Element|NodeList|string} obj
+	 * @return {[]}
+	 */
 	utils.getElementsAsArray = function (elementOrSelector) {
 		var targetElements = [];
 
-		if (typeof elementOrSelector === 'string') {
+		if (utils.isString(elementOrSelector)) {
 			targetElements = document.querySelectorAll(elementOrSelector);
 
-		} else if (elementOrSelector instanceof Element) {
+		} else if (utils.isElement(elementOrSelector)) {
 			targetElements = [elementOrSelector];
 
 		} else if (elementOrSelector instanceof NodeList || Array.isArray(elementOrSelector)) {
@@ -71,11 +75,18 @@
 	 * @returns {boolean}
 	 */
 	utils.isObject = function (data) {
-		if (typeof data === 'undefined' || data === null || Array.isArray(data)) {
-			return false;
-		}
+		return ! utils.isDefined(data) || data === null || Array.isArray(data)
+			? false
+			: typeof data === 'object';
+	};
 
-		return typeof data === 'object';
+
+	/**
+	 * @param {*} data
+	 * @returns {boolean}
+	 */
+	utils.isElement = function (data) {
+		return data instanceof Element;
 	};
 
 
@@ -85,6 +96,24 @@
 	 */
 	utils.isFunction = function (data) {
 		return typeof data === 'function';
+	};
+
+
+	/**
+	 * @param {*} data
+	 * @returns {boolean}
+	 */
+	utils.isDefined = function (data) {
+		return typeof data !== 'undefined';
+	};
+
+
+	/**
+	 * @param {*} data
+	 * @returns {boolean}
+	 */
+	utils.isString = function (data) {
+		return typeof data === 'string';
 	};
 
 
@@ -167,8 +196,7 @@
 	 */
 	utils.generateHash = function (length) {
 		length = length || 10;
-		length += 2;
-		return Math.random().toString(36).substring(2, length);
+		return Math.random().toString(36).substring(2, length + 2);
 	};
 
 	var
@@ -302,7 +330,7 @@
 						return;
 					}
 
-					if (typeof tokenPart !== 'undefined') {
+					if (utils.isDefined(tokenPart)) {
 						tokenArray.push(tokenPart);
 					}
 				});
@@ -371,7 +399,7 @@
 
 	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 
-	var cacheManager = {
+	var cacheManager$1 = {
 		cache: {}
 	};
 
@@ -381,12 +409,12 @@
 	 * @param {string} cacheKey
 	 * @returns {*}
 	 */
-	cacheManager.getCache = function (region, cacheKey) {
-		if ( ! cacheManager.hasCache(region, cacheKey)) {
+	cacheManager$1.getCache = function (region, cacheKey) {
+		if ( ! cacheManager$1.hasCache(region, cacheKey)) {
 			return null;
 		}
 
-		return cacheManager.cache[region][cacheKey];
+		return cacheManager$1.cache[region][cacheKey];
 	};
 
 
@@ -396,16 +424,16 @@
 	 * @param {*} cache
 	 * @returns {{cache: {}}}
 	 */
-	cacheManager.setCache = function (region, cacheKey, cache) {
-		if ( ! cacheManager.hasCacheRegion(region)) {
-			cacheManager.cache[region] = {};
+	cacheManager$1.setCache = function (region, cacheKey, cache) {
+		if ( ! cacheManager$1.hasCacheRegion(region)) {
+			cacheManager$1.cache[region] = {};
 		}
 
-		if ( ! cacheManager.hasCache(region, cacheKey)) {
-			cacheManager.cache[region][cacheKey] = cache;
+		if ( ! cacheManager$1.hasCache(region, cacheKey)) {
+			cacheManager$1.cache[region][cacheKey] = cache;
 		}
 
-		return cacheManager;
+		return cacheManager$1;
 	};
 
 
@@ -413,8 +441,8 @@
 	 * @param {string} region
 	 * @returns {boolean}
 	 */
-	cacheManager.hasCacheRegion = function (region) {
-		return region in cacheManager.cache;
+	cacheManager$1.hasCacheRegion = function (region) {
+		return region in cacheManager$1.cache;
 	};
 
 
@@ -423,12 +451,24 @@
 	 * @param {string} cacheKey
 	 * @returns {boolean}
 	 */
-	cacheManager.hasCache = function (region, cacheKey) {
-		if ( ! cacheManager.hasCacheRegion(region)) {
+	cacheManager$1.hasCache = function (region, cacheKey) {
+		if ( ! cacheManager$1.hasCacheRegion(region)) {
 			return false;
 		}
 
-		return cacheKey in cacheManager.cache[region];
+		return cacheKey in cacheManager$1.cache[region];
+	};
+
+
+	/**
+	 * @param {string} region
+	 * @param {string} cacheKey
+	 * @returns {void}
+	 */
+	cacheManager$1.clearCache = function (region, cacheKey) {
+		if (cacheManager$1.hasCache(region, cacheKey)) {
+			delete cacheManager$1.cache[region][cacheKey];
+		}
 	};
 
 	/**
@@ -457,7 +497,7 @@
 					return;
 				}
 
-				filterParameters = typeof filterArray[1] === 'string' ? filterArray[1].split(',') : [];
+				filterParameters = utils.isString(filterArray[1]) ? filterArray[1].split(',') : [];
 				filterParameters.unshift(variable);
 
 				variable = '_templateAdd([' + filterParameters + '], \'' + filterName + '\')';
@@ -483,7 +523,7 @@
 
 		tokenMatchArray.shift();
 
-		if (typeof macros[macroName] === 'string') {
+		if (utils.isString(macros[macroName])) {
 			parsedToken = macros[macroName];
 
 			utils.each(tokenMatchArray, function (tokenMatchPartKey, tokenMatchPart) {
@@ -586,7 +626,7 @@
 	}
 
 
-	addFilter('escape', function (variable) {
+	addFilter('escape', function (variable, context) {
 		var entityMap = {
 			'"': '&quot;',
 			'&': '&amp;',
@@ -605,22 +645,21 @@
 
 	var
 		TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
-		TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
+		TEMPLATE_RESULTS_CACHE_REGION$1 = 'templateResults';
 
 	function renderTemplate(template, parameters)
 	{
-		// TODO Dořešit cachování - padají testy
 		if (parameters.resultCacheEnabled
-			&& parameters.hash
-			&& cacheManager.hasCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash)
+			&& parameters.uniqueId
+			&& cacheManager$1.hasCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId)
 		) {
-			return cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash);
+			return cacheManager$1.getCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId);
 		}
 
 		var
-			cacheKeyIsSet = typeof parameters.cacheKey === 'string',
+			cacheKeyIsSet = utils.isString(parameters.cacheKey),
 			templateFunction = cacheKeyIsSet
-				? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
+				? cacheManager$1.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
 				: null,
 			data = parameters.data,
 			runtime = {
@@ -633,7 +672,7 @@
 				blocks: {},
 				utils: utils,
 				templateAdd: function (data, filter) {
-					if (typeof data === 'undefined') {
+					if ( ! utils.isDefined(data)) {
 						return '';
 					}
 
@@ -661,9 +700,8 @@
 			}
 			var tokens = tokenizeTemplate(template);
 			templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
-
 			if (cacheKeyIsSet) {
-				cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
+				cacheManager$1.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
 			}
 		}
 
@@ -675,21 +713,22 @@
 
 		templateString = templateString.replace(
 			new RegExp(eventHandlersAttributeName + '=', 'g'),
-			parameters.hash ? eventHandlersAttributeName + '-' + parameters.hash + '=' : eventHandlersAttributeName + '='
+			parameters.uniqueId
+				? eventHandlersAttributeName + '-' + parameters.uniqueId + '='
+				: eventHandlersAttributeName + '='
 		);
 
 		if (parameters.type === 'component') {
 			var parentElement = new DOMParser().parseFromString(templateString, 'text/html').querySelector('body *');
 
 			if (parentElement) {
-				parentElement.setAttribute(selectorAttributeName, parameters.id);
+				parentElement.setAttribute(selectorAttributeName, parameters.uniqueId);
 				templateString = parentElement.outerHTML;
 			}
 		}
 
-		// Todo, nebude se čistit cache. Při destoy instance je potřeba smazat cache instance či komponenty
 		if (parameters.resultCacheEnabled) {
-			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.hash, {
+			cacheManager$1.setCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId, {
 				templateString: templateString,
 				templateRuntime: runtime
 			});
@@ -707,10 +746,9 @@
 	 */
 	function renderToString(renderingInstance) {
 		return renderTemplate(renderingInstance.template, {
-			cacheKey: renderingInstance.cacheKey,
+			cacheKey: renderingInstance._instanceId ? renderingInstance._instanceId : null,
+			uniqueId: renderingInstance.instanceId,
 			data: renderingInstance._data,
-			id: renderingInstance.instanceId,
-			hash: renderingInstance.hash,
 			type: renderingInstance.type,
 			resultCacheEnabled: renderingInstance.resultCacheEnabled,
 			runtime: {
@@ -805,7 +843,7 @@
 		}
 
 		var
-			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.hash,
+			eventHandlersAttributeNameWithSuffix = eventHandlersAttributeName + '-' + renderingInstance.instanceId,
 			eventHandlersSelector = '[' + eventHandlersAttributeNameWithSuffix + ']',
 			eventHandlers = [];
 
@@ -826,7 +864,7 @@
 
 					var eventNameMatch = event.match(/^(\S+)/);
 
-					if ( ! eventNameMatch || typeof eventNameMatch[1] === 'undefined') {
+					if ( ! eventNameMatch || ! utils.isDefined(eventNameMatch[1])) {
 						return;
 					}
 
@@ -915,14 +953,13 @@
 	function createRenderingInstanceObject(parameters, targetElement) {
 		parameters = utils.cloneObject(parameters);
 
-		if (typeof parameters.template === 'function') {
+		if (utils.isFunction(parameters.template)) {
 			parameters.template = parameters.template.call(parameters);
 		}
 
 		var
 			instance = {
 				childrenInstancesIds: [],
-				cacheKey: parameters.cacheKey || null,
 				data: parameters.data ? utils.cloneObject(parameters.data) : {},
 				hash: utils.generateHash(),
 				isMounted: false,
@@ -935,7 +972,7 @@
 				watch: parameters.watch || {},
 				_data: {},
 				_instanceId: null,
-				_dataObjectInitialized: false,
+				_propertyDescriptorsInitialized: false,
 				set instanceId(id) {
 					this._instanceId = id;
 				},
@@ -957,6 +994,9 @@
 
 					destroyChildrenInstances(this);
 					delete renderingInstances[this.instanceId];
+
+					cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters._instanceId);
+					cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.instanceId);
 
 					this.destroyed();
 
@@ -1047,7 +1087,7 @@
 			};
 		}
 
-		if (targetElement && targetElement instanceof Element && ! targetElement.getAttribute(selectorAttributeName)) {
+		if (targetElement && utils.isElement(targetElement) && ! targetElement.getAttribute(selectorAttributeName)) {
 			targetElement.setAttribute(selectorAttributeName, instance.instanceId);
 		}
 
@@ -1080,6 +1120,7 @@
 		renderingInstances[instance.instanceId] = instance;
 
 		instance.created();
+
 		return instance;
 	}
 
@@ -1187,7 +1228,7 @@
 	 * @param {{}} instance
 	 */
 	function prepareInstanceForRendering(instance) {
-		var instanceElementIsElement = instance.el instanceof Element;
+		var instanceElementIsElement = utils.isElement(instance.el);
 
 		if (instanceElementIsElement) {
 			bindEventHandlers(instance);
@@ -1223,7 +1264,7 @@
 			templateObject = renderToString(instance),
 			templateParentNode = new DOMParser().parseFromString(templateObject.templateString, 'text/html'),
 			templateParentNodeFirstChild = templateParentNode.body.firstChild,
-			replacingElement = templateParentNodeFirstChild instanceof Element
+			replacingElement = utils.isElement(templateParentNodeFirstChild)
 				? templateParentNodeFirstChild
 				: templateParentNode.body.innerHTML,
 			elementToBeReplaced = instance.el;
@@ -1233,7 +1274,7 @@
 
 		prepareInstanceForRendering(instance);
 
-		if (replacingElement instanceof Element) {
+		if (utils.isElement(replacingElement)) {
 			elementToBeReplaced.parentElement.replaceChild(instance.el, elementToBeReplaced);
 
 		} else {
@@ -1280,7 +1321,7 @@
 	}
 
 	Brackets.utils = utils;
-	Brackets.cacheManager = cacheManager;
+	Brackets.cacheManager = cacheManager$1;
 	Brackets.templateLiteral = templateLiteral;
 
 	Brackets.addFilter = addFilter;
@@ -1313,10 +1354,10 @@
 
 	Brackets.configure();
 
-	if (typeof window !== 'undefined' && typeof window.Brackets === 'undefined') {
+	if (utils.isDefined(window) && ! utils.isDefined(window.Brackets)) {
 		window.Brackets = Brackets;
-
-	} else if (typeof module === 'object' && typeof module.exports === 'object' ) {
+	// Todo check ffunkčnost
+	} else if (utils.isObject(module) && utils.isObject(module.exports)) {
 		module.exports = Brackets;
 	}
 
