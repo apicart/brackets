@@ -16,13 +16,17 @@ utils.cloneObject = function (obj) {
 };
 
 
+/**
+ * @param {Element|NodeList|string} obj
+ * @return {[]}
+ */
 utils.getElementsAsArray = function (elementOrSelector) {
 	var targetElements = [];
 
-	if (typeof elementOrSelector === 'string') {
+	if (utils.isString(elementOrSelector)) {
 		targetElements = document.querySelectorAll(elementOrSelector);
 
-	} else if (elementOrSelector instanceof Element) {
+	} else if (utils.isElement(elementOrSelector)) {
 		targetElements = [elementOrSelector];
 
 	} else if (elementOrSelector instanceof NodeList || Array.isArray(elementOrSelector)) {
@@ -61,12 +65,19 @@ utils.mergeObjects = function () {
  * @returns {boolean}
  */
 utils.isObject = function (data) {
-	if (typeof data === 'undefined' || data === null || Array.isArray(data)) {
-		return false;
-	}
-
-	return typeof data === 'object';
+	return ! utils.isDefined(data) || data === null || Array.isArray(data)
+		? false
+		: typeof data === 'object';
 };
+
+
+/**
+ * @param {*} data
+ * @returns {boolean}
+ */
+utils.isElement = function (data) {
+	return data instanceof Element;
+}
 
 
 /**
@@ -76,6 +87,24 @@ utils.isObject = function (data) {
 utils.isFunction = function (data) {
 	return typeof data === 'function';
 };
+
+
+/**
+ * @param {*} data
+ * @returns {boolean}
+ */
+utils.isDefined = function (data) {
+	return typeof data !== 'undefined';
+}
+
+
+/**
+ * @param {*} data
+ * @returns {boolean}
+ */
+utils.isString = function (data) {
+	return typeof data === 'string';
+}
 
 
 /**
@@ -157,6 +186,5 @@ utils.each = function (iterable, callback) {
  */
 utils.generateHash = function (length) {
 	length = length || 10;
-	length += 2;
-	return Math.random().toString(36).substring(2, length);
+	return Math.random().toString(36).substring(2, length + 2);
 };

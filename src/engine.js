@@ -49,9 +49,8 @@ Brackets.renderToString = function (parameters) {
 
 Brackets.configure();
 
-if (typeof window !== 'undefined' && typeof window.Brackets === 'undefined') {
+if (utils.isDefined(window) && ! utils.isDefined(window.Brackets)) {
 	window.Brackets = Brackets;
-
-} else if (typeof module === 'object' && typeof module.exports === 'object' ) {
+} else if (utils.isObject(module) && utils.isObject(module.exports)) {
 	module.exports = Brackets;
 }
