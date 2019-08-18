@@ -9,9 +9,9 @@ describe('Complex', function () {
 		workspaceElement.innerHTML = '<div id="app"></div>';
 
 		var appView = Brackets.render({
+			instanceId: 'iLoveBracketsText',
 			el: '#app',
 			template: '{{$text}}',
-			cacheKey: 'test',
 			resultCacheEnabled: true,
 			data: {
 				text: "I love️ Brackets!"
@@ -19,7 +19,7 @@ describe('Complex', function () {
 		})[0];
 
 		assert.equal(workspaceElement.innerText, 'I love️ Brackets!');
-		assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', 'test') === 'function');
+		assert.isTrue(typeof Brackets.cacheManager.getCache('templateFunctions', appView._instanceId) === 'function');
 		assert.isTrue(typeof Brackets.cacheManager.getCache('templateResults', appView.hash) === 'object');
 	});
 
@@ -27,8 +27,8 @@ describe('Complex', function () {
 		workspaceElement.innerHTML = '<div id="app">{{$text}}</div>';
 
 		Brackets.render({
+			instanceId: 'test',
 			el: '#app',
-			cacheKey: 'test',
 			data: {
 				text: "I love️ Brackets!"
 			}
