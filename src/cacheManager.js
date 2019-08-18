@@ -68,4 +68,4 @@ cacheManager.clearCache = function (region, cacheKey) {
 	if (cacheManager.hasCache(region, cacheKey)) {
 		delete cacheManager.cache[region][cacheKey];
 	}
-}
+};

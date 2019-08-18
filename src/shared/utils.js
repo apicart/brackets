@@ -77,7 +77,7 @@ utils.isObject = function (data) {
  */
 utils.isElement = function (data) {
 	return data instanceof Element;
-}
+};
 
 
 /**
@@ -95,7 +95,7 @@ utils.isFunction = function (data) {
  */
 utils.isDefined = function (data) {
 	return typeof data !== 'undefined';
-}
+};
 
 
 /**
@@ -104,7 +104,7 @@ utils.isDefined = function (data) {
  */
 utils.isString = function (data) {
 	return typeof data === 'string';
-}
+};
 
 
 /**

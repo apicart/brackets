@@ -6,7 +6,7 @@ import { compileTemplate } from './compileTemplate';
 import { getFilter } from '../runtime/filters';
 import { templateLiteralsEnabled, eventHandlersAttributeName, selectorAttributeName } from '../shared/variables';
 
-var
+export var
 	TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
 	TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
 

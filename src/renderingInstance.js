@@ -7,6 +7,8 @@ import {
 } from './shared/variables';
 import { renderComponent } from './runtime/components';
 import { renderToString } from './renderToString';
+import { cacheManager } from './cacheManager';
+import { TEMPLATE_RESULTS_CACHE_REGION, TEMPLATE_FUNCTIONS_CACHE_REGION } from './templateEngine/renderTemplate';
 
 
 export var renderingInstances = {};
@@ -173,7 +175,7 @@ export function createRenderingInstanceObject(parameters, targetElement) {
 				destroyChildrenInstances(this);
 				delete renderingInstances[this.instanceId];
 
-				cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters._instanceId);
+				cacheManager.clearCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters._instanceId);
 				cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.instanceId);
 
 				this.destroyed();
