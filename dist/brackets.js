@@ -310,7 +310,6 @@
 	 * @return {{macros: [], text: []}}
 	 */
 	function tokenizeTemplate(template) {
-		// Todo zkontrolovat, jestl ije potřeba mít macro tokens a text tokens. Zda nestačí jen jedno pole a přiřadit typ
 		var
 			macroTokens = [],
 			textTokens = [],
@@ -399,7 +398,7 @@
 
 	var templateLiteral = templateLiteralsEnabled ? '`' : '\'';
 
-	var cacheManager$1 = {
+	var cacheManager = {
 		cache: {}
 	};
 
@@ -409,12 +408,12 @@
 	 * @param {string} cacheKey
 	 * @returns {*}
 	 */
-	cacheManager$1.getCache = function (region, cacheKey) {
-		if ( ! cacheManager$1.hasCache(region, cacheKey)) {
+	cacheManager.getCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
 			return null;
 		}
 
-		return cacheManager$1.cache[region][cacheKey];
+		return cacheManager.cache[region][cacheKey];
 	};
 
 
@@ -424,16 +423,16 @@
 	 * @param {*} cache
 	 * @returns {{cache: {}}}
 	 */
-	cacheManager$1.setCache = function (region, cacheKey, cache) {
-		if ( ! cacheManager$1.hasCacheRegion(region)) {
-			cacheManager$1.cache[region] = {};
+	cacheManager.setCache = function (region, cacheKey, cache) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
+			cacheManager.cache[region] = {};
 		}
 
-		if ( ! cacheManager$1.hasCache(region, cacheKey)) {
-			cacheManager$1.cache[region][cacheKey] = cache;
+		if ( ! cacheManager.hasCache(region, cacheKey)) {
+			cacheManager.cache[region][cacheKey] = cache;
 		}
 
-		return cacheManager$1;
+		return cacheManager;
 	};
 
 
@@ -441,8 +440,8 @@
 	 * @param {string} region
 	 * @returns {boolean}
 	 */
-	cacheManager$1.hasCacheRegion = function (region) {
-		return region in cacheManager$1.cache;
+	cacheManager.hasCacheRegion = function (region) {
+		return region in cacheManager.cache;
 	};
 
 
@@ -451,12 +450,12 @@
 	 * @param {string} cacheKey
 	 * @returns {boolean}
 	 */
-	cacheManager$1.hasCache = function (region, cacheKey) {
-		if ( ! cacheManager$1.hasCacheRegion(region)) {
+	cacheManager.hasCache = function (region, cacheKey) {
+		if ( ! cacheManager.hasCacheRegion(region)) {
 			return false;
 		}
 
-		return cacheKey in cacheManager$1.cache[region];
+		return cacheKey in cacheManager.cache[region];
 	};
 
 
@@ -465,9 +464,9 @@
 	 * @param {string} cacheKey
 	 * @returns {void}
 	 */
-	cacheManager$1.clearCache = function (region, cacheKey) {
-		if (cacheManager$1.hasCache(region, cacheKey)) {
-			delete cacheManager$1.cache[region][cacheKey];
+	cacheManager.clearCache = function (region, cacheKey) {
+		if (cacheManager.hasCache(region, cacheKey)) {
+			delete cacheManager.cache[region][cacheKey];
 		}
 	};
 
@@ -626,7 +625,7 @@
 	}
 
 
-	addFilter('escape', function (variable, context) {
+	addFilter('escape', function (variable) {
 		var entityMap = {
 			'"': '&quot;',
 			'&': '&amp;',
@@ -645,21 +644,21 @@
 
 	var
 		TEMPLATE_FUNCTIONS_CACHE_REGION = 'templateFunctions',
-		TEMPLATE_RESULTS_CACHE_REGION$1 = 'templateResults';
+		TEMPLATE_RESULTS_CACHE_REGION = 'templateResults';
 
 	function renderTemplate(template, parameters)
 	{
 		if (parameters.resultCacheEnabled
 			&& parameters.uniqueId
-			&& cacheManager$1.hasCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId)
+			&& cacheManager.hasCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId)
 		) {
-			return cacheManager$1.getCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId);
+			return cacheManager.getCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId);
 		}
 
 		var
 			cacheKeyIsSet = utils.isString(parameters.cacheKey),
 			templateFunction = cacheKeyIsSet
-				? cacheManager$1.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
+				? cacheManager.getCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey)
 				: null,
 			data = parameters.data,
 			runtime = {
@@ -701,7 +700,7 @@
 			var tokens = tokenizeTemplate(template);
 			templateFunction = compileTemplate(tokens, templateParametersNames.concat(Object.keys(data)));
 			if (cacheKeyIsSet) {
-				cacheManager$1.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
+				cacheManager.setCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters.cacheKey, templateFunction);
 			}
 		}
 
@@ -728,7 +727,7 @@
 		}
 
 		if (parameters.resultCacheEnabled) {
-			cacheManager$1.setCache(TEMPLATE_RESULTS_CACHE_REGION$1, parameters.uniqueId, {
+			cacheManager.setCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.uniqueId, {
 				templateString: templateString,
 				templateRuntime: runtime
 			});
@@ -995,7 +994,7 @@
 					destroyChildrenInstances(this);
 					delete renderingInstances[this.instanceId];
 
-					cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters._instanceId);
+					cacheManager.clearCache(TEMPLATE_FUNCTIONS_CACHE_REGION, parameters._instanceId);
 					cacheManager.clearCache(TEMPLATE_RESULTS_CACHE_REGION, parameters.instanceId);
 
 					this.destroyed();
@@ -1321,7 +1320,7 @@
 	}
 
 	Brackets.utils = utils;
-	Brackets.cacheManager = cacheManager$1;
+	Brackets.cacheManager = cacheManager;
 	Brackets.templateLiteral = templateLiteral;
 
 	Brackets.addFilter = addFilter;
@@ -1356,7 +1355,6 @@
 
 	if (utils.isDefined(window) && ! utils.isDefined(window.Brackets)) {
 		window.Brackets = Brackets;
-	// Todo check ffunkčnost
 	} else if (utils.isObject(module) && utils.isObject(module.exports)) {
 		module.exports = Brackets;
 	}
